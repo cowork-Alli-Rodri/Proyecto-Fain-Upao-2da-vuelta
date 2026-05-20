@@ -1,0 +1,10 @@
+{
+  "prompt": "Professional portrait headshot photograph. Woman, 35 years old, Peruvian mestiza appearance — medium-warm brown skin tone, dark brown straight hair past shoulders, dark brown eyes, high cheekbones, natural features. Warm genuine smile showing teeth. Wearing a simple dark navy or cream casual blouse. Soft blurred dark gray background. Natural studio lighting, slightly warm and flattering. 85mm portrait lens f/1.8 ISO 250, eyes tack sharp. Realistic skin texture with natural pores, subtle laugh lines — no beauty filters, no heavy retouching. Square headshot crop, face and upper chest only. Documentary portrait realism.",
+  "negative_prompt": "cartoon, illustration, AI beauty filter, plastic skin, heavy retouching, hat, dramatic makeup, jewelry, text, watermark, full body, white background, harsh lighting, man",
+  "api_parameters": {
+    "google_search": true,
+    "resolution": "1K",
+    "output_format": "png",
+    "aspect_ratio": "1:1"
+  }
+}

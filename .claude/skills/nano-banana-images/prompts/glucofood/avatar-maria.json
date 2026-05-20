@@ -1,0 +1,10 @@
+{
+  "prompt": "Professional portrait headshot photograph. Woman, 40 years old, Peruvian mestiza appearance — warm medium brown skin tone, dark hair worn up or tied back naturally, dark brown eyes, warm motherly expression with full genuine smile. Wearing a simple casual blouse. Soft blurred background. Natural warm lighting. 85mm f/1.8 ISO 250, eyes sharp. Realistic skin texture with natural laugh lines. No filters. Square headshot, face and chest only.",
+  "negative_prompt": "cartoon, plastic skin, heavy retouching, heavy makeup, text, watermark, full body, white background, man, too young",
+  "api_parameters": {
+    "google_search": true,
+    "resolution": "1K",
+    "output_format": "png",
+    "aspect_ratio": "1:1"
+  }
+}

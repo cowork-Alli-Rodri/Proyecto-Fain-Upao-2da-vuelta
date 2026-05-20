@@ -1,0 +1,10 @@
+{
+  "prompt": "Professional portrait headshot photograph. Woman, 28 years old, Peruvian appearance with lighter mestiza complexion — light medium skin tone, wavy dark brown hair, hazel-brown eyes, friendly face. Bright natural smile. Wearing a casual light-colored top. Soft blurred neutral background. Natural warm studio lighting. 85mm portrait lens f/1.8 ISO 250, eyes tack sharp. Realistic skin texture, no beauty filters. Square headshot, face and upper chest only.",
+  "negative_prompt": "cartoon, illustration, plastic skin, heavy retouching, hat, heavy makeup, text, watermark, full body, white background, man",
+  "api_parameters": {
+    "google_search": true,
+    "resolution": "1K",
+    "output_format": "png",
+    "aspect_ratio": "1:1"
+  }
+}

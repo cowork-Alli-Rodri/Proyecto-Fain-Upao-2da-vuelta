@@ -1,0 +1,10 @@
+{
+  "prompt": "Professional portrait headshot photograph. Woman, 25 years old, Peruvian Andean appearance — darker warm brown skin tone, straight very dark black hair, dark eyes with slight epicanthic fold, prominent cheekbones, beautiful indigenous Cusquena features. Bright genuine smile. Wearing a simple casual top. Soft blurred dark background. Natural warm lighting. 85mm f/1.8 ISO 250, eyes sharp. Realistic skin texture. No beauty filters. Square headshot, face and chest only.",
+  "negative_prompt": "cartoon, plastic skin, heavy retouching, hat, traditional costume, text, watermark, full body, man, white background, stereotypical",
+  "api_parameters": {
+    "google_search": true,
+    "resolution": "1K",
+    "output_format": "png",
+    "aspect_ratio": "1:1"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "prompt": "Product photograph. Single subject: a small arrangement of 2 vanilla pods split open showing dark seeds inside, and 1 vanilla orchid flower with white-cream petals and yellow center, laid together naturally. Pure white background. Bright even studio lighting, clean and sharp. No other elements, no surface texture, no background shadows. Isolated cutout product style.",
+  "negative_prompt": "dark background, colored background, other objects, glass, bottle, can, logo, text, watermark, people, protein powder",
+  "api_parameters": {
+    "google_search": false,
+    "resolution": "1K",
+    "output_format": "png",
+    "aspect_ratio": "4:3"
+  }
+}

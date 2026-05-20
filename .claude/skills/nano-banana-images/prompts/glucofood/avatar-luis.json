@@ -1,0 +1,10 @@
+{
+  "prompt": "Professional portrait headshot photograph. Man, 30 years old, Peruvian mestizo appearance — medium brown skin tone, short dark hair, dark brown eyes, athletic build visible in shoulders, defined jawline. Confident calm expression with slight smile. Wearing a simple white or gray athletic t-shirt. Soft blurred dark background. Natural studio lighting, slightly warm. 85mm portrait lens f/1.8 ISO 250, eyes tack sharp. Realistic skin texture, natural pores, no beauty filters. Square headshot crop, face and upper chest only. Documentary portrait realism.",
+  "negative_prompt": "cartoon, illustration, AI beauty filter, plastic skin, heavy retouching, hat, sunglasses, text, watermark, full body, white background, woman",
+  "api_parameters": {
+    "google_search": true,
+    "resolution": "1K",
+    "output_format": "png",
+    "aspect_ratio": "1:1"
+  }
+}

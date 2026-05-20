@@ -1,0 +1,10 @@
+{
+  "prompt": "Professional portrait headshot photograph. Man, 45 years old, Peruvian mestizo appearance — medium-dark brown skin tone, short salt-and-pepper dark hair, dark eyes, slight distinguished look with subtle facial lines showing age naturally. Calm serious-but-warm expression, slight smile. Wearing a casual button shirt or polo. Soft blurred dark background. Natural warm studio lighting. 85mm f/1.8 ISO 250, eyes sharp. Realistic skin, natural aging, no filters. Square headshot, face and chest only.",
+  "negative_prompt": "cartoon, plastic skin, heavy retouching, beard (unless very natural stubble), hat, text, watermark, full body, woman, too young looking",
+  "api_parameters": {
+    "google_search": true,
+    "resolution": "1K",
+    "output_format": "png",
+    "aspect_ratio": "1:1"
+  }
+}
