@@ -1,0 +1,61 @@
+# Dependencias
+node_modules/
+.pnpm-store/
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Tests
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Env y secretos
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+!.env.example
+
+# Claude Code (puede guardar tokens/credenciales)
+.claude/settings.local.json
+.claude/cache/
+
+# Supabase
+.supabase/
+supabase/.branches/
+supabase/.temp/
+
+# Turbopack
+.turbo/
+
+# Vercel
+.vercel/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Spec Kit cache temporal
+.specify/.cache/
+
+# OS-specific tmp
+*.tmp
+*.bak
