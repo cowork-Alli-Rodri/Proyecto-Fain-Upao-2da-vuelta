@@ -109,7 +109,22 @@ Aplicar migraciones y seeds:
 pnpm exec supabase db reset
 pnpm run seed:questions      # banco inicial de preguntas (12, 4 dimensiones)
 pnpm run seed:jne-roberto    # llena las 4 dimensiones de Roberto desde el JSON
+pnpm run seed:demo           # opcional: 40 estudiantes ficticios para ver dashboard
 ```
+
+### Promover usuario a teacher/admin
+
+Después de registrarte en `/login`, promueve tu cuenta:
+
+```powershell
+# Promover a docente (también lo agrega a allowed_teachers)
+pnpm run promote:user -- --email tu@correo.com --role teacher
+
+# Promover a admin (solo SQL directo o este script)
+pnpm run promote:user -- --email rodrigo@correo.com --role admin
+```
+
+Refresca el navegador y ya tendrás acceso a `/dashboard` (teacher/admin) y `/admin` (admin).
 
 Esto corre todas las migraciones en orden, carga seed JNE de Keiko (4 dimensiones completas) y luego los dos scripts completan Roberto y el banco de preguntas.
 

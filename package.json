@@ -28,6 +28,8 @@
     "db:stop": "supabase stop",
     "seed:questions": "tsx scripts/seed-questions.ts",
     "seed:jne-roberto": "tsx scripts/seed-jne-roberto.ts",
+    "seed:demo": "tsx scripts/seed-demo-data.ts",
+    "promote:user": "tsx scripts/promote-user.ts",
     "add-teacher": "tsx scripts/add-teacher.ts",
     "jne:refresh": "tsx scripts/run-jne-refresh.ts",
     "anonymize": "tsx scripts/run-anonymization.ts",
