@@ -14,6 +14,9 @@ import {
 } from "./QuestionRenderer";
 import { saveAnswer, submitQuestionnaire } from "@/app/(student)/cuestionario/_actions";
 import { ERROR_MESSAGES } from "@/lib/errors";
+import { captureEvent } from "@/lib/analytics/posthog";
+import { useTrackOnce } from "@/lib/analytics/useTrack";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
 
 const DIMENSION_LABEL: Record<QuestionRecord["dimension_tematica"], string> = {
   social: "Social",
@@ -45,6 +48,9 @@ export function MultiStepForm({
   const total = questions.length;
   const currentAnswer = current ? answers[current.id] ?? null : null;
   const canAdvance = current ? isAnswerComplete(current, currentAnswer) : false;
+
+  // Trackeo de inicio del cuestionario (una sola vez por sesión del componente).
+  useTrackOnce(ANALYTICS_EVENTS.QUESTIONNAIRE_STARTED, { total_questions: total });
 
   // Autosave debounced 700ms
   useEffect(() => {
@@ -94,6 +100,11 @@ export function MultiStepForm({
       }
       setError(null);
       if (stepIndex < total - 1) {
+        captureEvent(ANALYTICS_EVENTS.QUESTIONNAIRE_STEP_ADVANCED, {
+          from_step: stepIndex + 1,
+          to_step: stepIndex + 2,
+          dimension: current?.dimension_tematica,
+        });
         setStepIndex(stepIndex + 1);
         router.replace(`/cuestionario/${stepIndex + 2}`);
       }
@@ -110,6 +121,9 @@ export function MultiStepForm({
     setError(null);
     startSubmitting(async () => {
       try {
+        captureEvent(ANALYTICS_EVENTS.QUESTIONNAIRE_COMPLETED, {
+          total_questions: total,
+        });
         await submitQuestionnaire();
       } catch (e) {
         const errResult = e as { error?: { code?: string } };

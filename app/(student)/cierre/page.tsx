@@ -108,7 +108,7 @@ export default async function CierrePage() {
       <section className="border-t border-[var(--color-border)] py-16">
         <div className="mx-auto max-w-4xl px-6">
           <div className="space-y-6 rounded-2xl border-l-2 border-[var(--color-cyan-deep)] bg-[var(--color-surface)] p-8 shadow-[var(--shadow-soft)]">
-            <p className="editorial-kicker">Tus derechos · Ley 29733</p>
+            <p className="editorial-kicker">Tus derechos</p>
             <p className="text-base leading-relaxed text-[var(--color-foreground)]">
               Puedes solicitar el borrado completo de tus datos personales en cualquier momento.
               Tus respuestas se conservarán de forma anónima para el análisis pedagógico.

@@ -76,9 +76,9 @@ export function ConsentForm({ consentVersion }: { consentVersion: string }) {
           <div className="space-y-1">
             <p className="font-medium text-[var(--color-navy-upao)]">Tus derechos</p>
             <p>
-              Puedes solicitar el borrado completo de tus datos en cualquier momento desde tu
-              perfil. Tienes derecho a acceder, rectificar y oponerte al tratamiento conforme a la
-              Ley N° 29733.
+              Puedes solicitar el borrado completo de tus datos en cualquier
+              momento desde tu perfil. Tienes derecho a acceder, rectificar y
+              oponerte al tratamiento de tus datos personales.
             </p>
           </div>
 

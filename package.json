@@ -35,6 +35,8 @@
     "anonymize": "tsx scripts/run-anonymization.ts",
     "anonymize:dry-run": "tsx scripts/run-anonymization.ts --dry-run",
     "export": "tsx scripts/export-cli.ts",
+    "bundle:budget": "tsx scripts/bundle-budget.ts",
+    "axe:audit": "tsx scripts/axe-audit.ts",
     "load-test": "k6 run tests/load/student-flow.js"
   },
   "dependencies": {
@@ -86,6 +88,7 @@
   "devDependencies": {
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@eslint/eslintrc": "^3.3.5",
     "@playwright/test": "^1.60.0",
     "@testing-library/jest-dom": "^6.9.1",

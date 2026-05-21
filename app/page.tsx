@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { MagneticButton } from "@/components/landing/MagneticButton";
+import { GsapHeroReveal } from "@/components/motion/GsapHeroReveal";
 import { ParallaxAngel } from "@/components/motion/ParallaxAngel";
 import { ScrollProgress } from "@/components/motion/ScrollProgress";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
@@ -41,18 +43,15 @@ export default function HomePage() {
                 </div>
               </ScrollReveal>
 
-              <ScrollReveal direction="up" delay={0.1}>
-                <h1 className="font-display text-[clamp(2.25rem,7vw,5.5rem)] font-medium leading-[0.98] tracking-tight text-[var(--color-navy-upao)]">
-                  Compara los planes
-                  <br />
-                  de gobierno
-                  <br />
-                  <span className="italic text-[var(--color-cyan-deep)]">
-                    sin intermediarios
+              <GsapHeroReveal className="font-display text-[clamp(2.25rem,7vw,5.5rem)] font-medium leading-[0.98] tracking-tight text-[var(--color-navy-upao)]">
+                <h1 className="m-0">
+                  <span className="block">Compara los planes</span>
+                  <span className="block">de gobierno</span>
+                  <span className="block italic text-[var(--color-cyan-deep)]">
+                    sin intermediarios.
                   </span>
-                  .
                 </h1>
-              </ScrollReveal>
+              </GsapHeroReveal>
 
               <ScrollReveal direction="up" delay={0.2}>
                 <p className="max-w-xl text-base leading-relaxed text-[var(--color-graphite)] sm:text-lg">
@@ -65,20 +64,11 @@ export default function HomePage() {
 
               <ScrollReveal direction="up" delay={0.3}>
                 <div className="flex flex-wrap items-center gap-4 pt-2">
+                  <MagneticButton href="/login" variant="primary">
+                    Comenzar →
+                  </MagneticButton>
                   <Link
-                    href="/login"
-                    className="group inline-flex min-h-[48px] items-center gap-2 rounded-full bg-[var(--color-navy-upao)] px-7 py-3.5 text-sm font-medium text-white transition hover:bg-[var(--color-navy-deep)]"
-                  >
-                    Comenzar
-                    <span
-                      aria-hidden
-                      className="inline-block transition-transform group-hover:translate-x-1"
-                    >
-                      →
-                    </span>
-                  </Link>
-                  <Link
-                    href="#como-funciona"
+                    href="/como-funciona"
                     className="inline-flex min-h-[48px] items-center text-sm font-medium text-[var(--color-graphite)] underline-offset-4 hover:underline"
                   >
                     Cómo funciona
@@ -140,7 +130,7 @@ export default function HomePage() {
                 {
                   n: "01",
                   title: "Identifícate",
-                  text: "Ingresa con Google, Microsoft o correo. Aceptas el consentimiento Ley 29733.",
+                  text: "Ingresa con Google, Microsoft o correo. Aceptas el consentimiento informado.",
                 },
                 {
                   n: "02",
@@ -193,7 +183,7 @@ export default function HomePage() {
                   {
                     kicker: "03",
                     title: "No vendemos tus datos",
-                    text: "PII conservada solo 12 meses post-cierre del ciclo. Anonimización irreversible después. Cumplimiento Ley 29733.",
+                    text: "Tu información personal se conserva solo 12 meses tras el cierre del ciclo. Después se anonimiza de forma irreversible.",
                   },
                   {
                     kicker: "04",

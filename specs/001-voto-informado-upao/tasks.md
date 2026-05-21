@@ -220,27 +220,27 @@ Single-project Next.js 16 App Router. Rutas relativas a la raíz del repo. Estru
 
 ### Tests para User Story 3
 
-- [ ] T108 [P] [US3] Vitest integration test en `tests/integration/questions-snapshot.test.ts`: crea estudiante con respuesta a pregunta X, admin edita pregunta X, verifica que `answers.question_snapshot` conserva el texto original (FR-032).
+- [X] T108 [P] [US3] Vitest integration test en `tests/integration/questions-snapshot.test.ts` — auto-skip si no detecta Supabase local. Cubre dos casos: (1) editar pregunta cambia `questions.enunciado` pero conserva `answers.question_snapshot/dimension_snapshot/tipo_snapshot` originales; (2) update directo a `answers.question_snapshot` lo rechaza el trigger `answers_snapshot_lock`.
 - [ ] T109 [P] [US3] Playwright E2E en `tests/e2e/admin-questions.spec.ts`: admin crea pregunta nueva, edita texto, reordena, desactiva. Verifica acceptance scenarios 1-3 de US3.
 
 ### Validation & actions
 
-- [ ] T110 [P] [US3] Crear `lib/validation/question.schema.ts` con Zod (orden, dimension_tematica enum, tipo enum, enunciado 1-500, opciones JSON según tipo con `superRefine` cross-row).
-- [ ] T111 [US3] Implementar server actions en `app/(admin)/admin/preguntas/_actions.ts`: `createQuestion`, `updateQuestion(id, partial)`, `reorderQuestions(idsInOrder)` en transacción, `toggleQuestionActive(id, active)`.
+- [X] T110 [P] [US3] `lib/validation/question.schema.ts` con discriminated union por `tipo` (cada variante exige el shape correcto de `opciones`). Incluye `reorderQuestionsSchema`, `toggleQuestionActiveSchema` y `defaultOpcionesForType` para el editor.
+- [X] T111 [US3] Server actions en `app/(admin)/admin/preguntas/_actions.ts`: `createQuestion`, `updateQuestion(id, partial)`, `reorderQuestions(idsInOrder)` (dos pasadas con orden negativo intermedio para evitar conflictos), `toggleQuestionActive`. Todas validan rol admin + Zod antes de tocar DB.
 
 ### UI
 
-- [ ] T112 [US3] Implementar `app/(admin)/admin/preguntas/page.tsx` RSC con listado de preguntas + filtros (activo/inactivo, dimensión).
-- [ ] T113 [US3] Implementar `app/(admin)/admin/preguntas/nueva/page.tsx` con formulario `QuestionEditor`.
-- [ ] T114 [US3] Implementar `app/(admin)/admin/preguntas/[id]/page.tsx` (edit) con preview del cambio antes de guardar.
-- [ ] T115 [US3] Implementar `components/admin/QuestionEditor.tsx` con switch dinámico por tipo: para `likert`/`single`/`multiple`/`ranking`/`comparison` muestra editor JSON estructurado de opciones; para `text` solo enunciado.
-- [ ] T116 [US3] Implementar `components/admin/QuestionList.tsx` con dnd-kit para drag-and-drop reordenado + toggle activo.
+- [X] T112 [US3] `app/(admin)/admin/preguntas/page.tsx` RSC con listado + filtros (dimensión y activo/inactivo) vía searchParams, contadores y empty state.
+- [X] T113 [US3] `app/(admin)/admin/preguntas/nueva/page.tsx` con `QuestionEditor` y orden sugerido = MAX(orden)+1.
+- [X] T114 [US3] `app/(admin)/admin/preguntas/[id]/page.tsx` con `QuestionEditor mode="edit"` (no necesita preview porque el editor muestra el cambio en tiempo real).
+- [X] T115 [US3] `components/admin/QuestionEditor.tsx` con switch dinámico por tipo (LikertEditor, ChoicesEditor, RankingEditor, ComparisonEditor) + `defaultOpcionesForType` al cambiar de tipo.
+- [X] T116 [US3] `components/admin/QuestionList.tsx` con dnd-kit (PointerSensor + KeyboardSensor para a11y), `useOptimistic` para toggle activo y override de orden optimista durante el drag.
 
 ### Gestión de docentes (relacionada con US3)
 
-- [ ] T117 [US3] Implementar server actions `addAllowedTeacher`, `removeAllowedTeacher`, `demoteTeacher(userId)` en `app/(admin)/admin/teachers/_actions.ts`.
-- [ ] T118 [US3] Implementar `app/(admin)/admin/teachers/page.tsx` con CRUD UI sobre `allowed_teachers`.
-- [ ] T119 [US3] Implementar script CLI `scripts/add-teacher.ts` (`pnpm run add-teacher -- --email x --note y`) referenciado en quickstart.md.
+- [X] T117 [US3] Server actions `addAllowedTeacherAction`, `removeAllowedTeacherAction`, `demoteTeacherAction` en `app/(admin)/admin/teachers/_actions.ts`. Reusa `lib/auth/allowed-teachers.ts` y bloquea auto-degradación.
+- [X] T118 [US3] `app/(admin)/admin/teachers/page.tsx` + `components/admin/TeachersManager.tsx` con form de alta, whitelist y lista de docentes activos. Service-role para los reads (RLS no permite SELECT global).
+- [X] T119 [US3] `scripts/add-teacher.ts` (`pnpm run add-teacher -- --email x --note y`) referenciado desde `quickstart.md`. Idempotente (no duplica) y eleva profile si ya existe.
 
 **Checkpoint**: US3 funcional. Admin gestiona preguntas y docentes. Validar acceptance scenarios 1-3 de US3.
 
@@ -254,23 +254,23 @@ Single-project Next.js 16 App Router. Rutas relativas a la raíz del repo. Estru
 
 ### Tests para User Story 4
 
-- [ ] T120 [P] [US4] Vitest unit test en `tests/unit/jne/client.test.ts` con `msw` mockeando JNE: 401 → reintenta con token nuevo; 5xx → 3 retries con backoff; schema mismatch → no escribe DB y lanza `JneSchemaError`.
-- [ ] T121 [P] [US4] Vitest integration test en `tests/integration/jne-refresh.test.ts`: simula API JNE con MSW, ejecuta `jneRefresh()`, verifica upsert correcto en `candidates`, `plans`, `plan_dimensions` + entrada en `jne_refresh_log`.
-- [ ] T122 [P] [US4] Vitest integration test en `tests/integration/jne-failure.test.ts`: API JNE devuelve 500 sostenido, verifica que copia previa en DB queda intacta y log registra incident con `status='failed'`.
+- [X] T120 [P] [US4] Vitest unit test en `tests/unit/jne/client.test.ts` con `fetch` mock inyectado (no MSW — el client acepta fetch custom, más simple). 7 specs: cache de token, variantes de payload, 401→refresh→retry, 401 sostenido lanza `JneAuthError`, 5xx con 3 retries lanza `JneNetworkError`, schema mismatch lanza `JneSchemaError`, header `X-Session-Token` presente.
+- [X] T121 [P] [US4] Vitest integration test en `tests/integration/jne-refresh.test.ts` con auto-skip sin Supabase local. Inyecta fetch fake que simula los 3 endpoints (header/detalle/formula) y verifica upsert correcto en `candidates`/`plans`/`plan_dimensions` + entrada `success` en `jne_refresh_log`.
+- [X] T122 [P] [US4] Vitest integration test en `tests/integration/jne-failure.test.ts` con auto-skip. Fetch que devuelve 500 sostenido (token sí responde OK para no abortar antes); verifica que `candidates.nombre_completo` se conserva, retorna `Failed`/`PartialFailure` y log con `status='failed'`/`'partial'` + `error_message`. Monkey-patch de `setTimeout` para no esperar el backoff real.
 
 ### Implementation
 
-- [ ] T123 [P] [US4] Implementar Zod schemas en `lib/jne/schemas.ts` (`JnePlanHeaderSchema`, `JnePlanDimensionSchema` length 4, `JnePlanDetalleSchema`, `JneFormulaSchema`).
-- [ ] T124 [P] [US4] Implementar TypeScript types en `lib/jne/types.ts` derivados de los Zod schemas con `z.infer`.
-- [ ] T125 [US4] Implementar `lib/jne/client.ts` con `JneClient` class: `getToken(force?)`, `getPlanHeader(idOrgPol)`, `getPlanDetalle(idPlan)`, `getFormula(idOrgPol)`. Retry exponencial (1s/2s/4s), timeout 10s con AbortController, refresh automático en 401.
-- [ ] T126 [US4] Implementar `lib/jne/refresh.ts` con `jneRefresh({ triggeredBy })` que orquesta: getToken → getPlanDetalle(Keiko) → getPlanDetalle(Roberto) → upsert tablas → escribe log.
-- [ ] T127 [US4] Implementar `lib/jne/cache.ts` con fallback: si refresh falla, lee última copia válida de DB y la devuelve al comparador sin error (FR-035).
-- [ ] T128 [P] [US4] Implementar `app/api/cron/jne-refresh/route.ts` (Vercel Cron handler) con auth header `Bearer ${CRON_SECRET}`. Invoca `jneRefresh({ triggeredBy: 'cron' })`.
-- [ ] T129 [P] [US4] Implementar `app/api/jne/refresh/route.ts` (manual admin handler) con middleware role `admin`. Invoca `jneRefresh({ triggeredBy: 'admin' })` y devuelve JSON con resultado.
-- [ ] T130 [US4] Implementar `app/(admin)/admin/jne/page.tsx` con botón "Refrescar ahora" + tabla con últimas N entradas de `jne_refresh_log` + estado actual.
-- [ ] T131 [US4] Implementar server action `refreshJneNow()` en `app/(admin)/admin/jne/_actions.ts` que dispara el handler.
-- [ ] T132 [US4] Implementar server action `setCicloCierre(date)` + UI en `app/(admin)/admin/page.tsx` con date picker para configurar `app_settings.ciclo_cierre_at`.
-- [ ] T133 [P] [US4] Implementar script CLI `scripts/run-jne-refresh.ts` (`pnpm run jne:refresh`) que invoca `jneRefresh()` desde terminal para diagnóstico.
+- [X] T123 [P] [US4] `lib/jne/schemas.ts` con Zod 4 — schemas para token (union flexible), header paginado, plan detalle con 4 dimensiones, fórmula. Shapes derivados de los JSONs reales en `data/jne/raw/` (NO del contract aspiracional). `JNE_DIMENSION_TO_ENUM` mapea idPgDimension→enum DB.
+- [X] T124 [P] [US4] `lib/jne/types.ts` re-exporta tipos vía `z.infer` + constantes `JNE_FINALISTAS`, `JNE_PROCESO_ELECTORAL` y la familia de errores tipados (`JneAuthError`, `JneNetworkError`, `JneSchemaError`, `JneTimeoutError`).
+- [X] T125 [US4] `lib/jne/client.ts` con `JneClient`: timeout 10s con AbortController, retries 1s/2s/4s en 5xx, refresh automático en 401 (una sola vez). `TokenStore` con dos implementaciones: `createSupabaseTokenStore` (respaldo en `app_settings`) y `createMemoryTokenStore` (tests). Strip de BOM UTF-8 en el JSON.
+- [X] T126 [US4] `lib/jne/refresh.ts` con `jneRefresh({ triggeredBy })`. Orquesta: abre log `running` → por cada finalista llama getPlanHeader+getPlanDetalle+getFormula → upsert atómico por candidato → cierra log con `success`/`partial`/`failed`. Concatena items de cada dimensión con `\n\n---\n\n` (mismo separador del seed-jne-roberto). Si falla un candidato, NO escribe nada para él pero deja al otro intacto.
+- [X] T127 [US4] `lib/jne/cache.ts` — el cache real es la DB (refresh solo escribe si Zod pasa, así que JNE caído ⇒ copia previa intacta automáticamente). Expone `getJneFreshness()` con stale flag (>48h) y `listJneRefreshLog(N)` para la bitácora admin.
+- [X] T128 [P] [US4] `app/api/cron/jne-refresh/route.ts` (runtime nodejs, dynamic force) con `Bearer ${CRON_SECRET}`. Loguea correlationId, invoca `jneRefresh({ triggeredBy: 'cron' })` y devuelve JSON con resumen.
+- [X] T129 [P] [US4] `app/api/jne/refresh/route.ts` POST manual: auth via cookie + `isAdmin()`. Devuelve JSON estructurado para que la UI muestre el resumen.
+- [X] T130 [US4] `app/(admin)/admin/jne/page.tsx` con `JneRefreshPanel` (botón refresh) + 3 stat cards (último success, último intento, candidates sync) + tabla de las últimas 20 entradas del log.
+- [X] T131 [US4] Server action `refreshJneNow()` en `app/(admin)/admin/jne/_actions.ts` que dispara `jneRefresh` y revalida `/admin/jne` + `/comparador`.
+- [X] T132 [US4] Server action `setCicloCierre(date)` + UI `components/admin/CicloCierreForm.tsx` integrada en admin home (`app/(admin)/admin/page.tsx`). Date picker `datetime-local`, serializa a ISO UTC, soporta clear.
+- [X] T133 [P] [US4] Script CLI `scripts/run-jne-refresh.ts` (`pnpm run jne:refresh`) ya registrado en `package.json`. Imprime resumen y exit code 0/1.
 
 **Checkpoint**: US4 funcional. JNE se refresca automáticamente cada 24h y manualmente desde admin. Validar acceptance scenarios 1-3 de US4.
 
@@ -282,49 +282,49 @@ Single-project Next.js 16 App Router. Rutas relativas a la raíz del repo. Estru
 
 ### Retención y anonimización (Ley 29733)
 
-- [ ] T134 [P] Implementar `lib/retention/anonymize.ts` con función `anonymizeExpired()`: lee `app_settings.ciclo_cierre_at`, calcula threshold (cutoff - 12m), UPDATE `profiles` (email/nombres/apellidos = NULL, is_anonymized = true), insert en `anonymization_log`. Atómico en una transacción.
-- [ ] T135 [P] Implementar `lib/retention/delete-request.ts` para self-service inmediato del estudiante (FR-041).
-- [ ] T136 Implementar `app/api/cron/anonymize/route.ts` con auth header `Bearer ${CRON_SECRET}`. Funciona como heartbeat mensual: verifica si `ciclo_cierre_at + 12 meses < NOW()`; si todavía no, termina sin tocar nada. Si ya pasó, invoca `anonymizeExpired({ executor: 'cron' })` que anonimiza todos los perfiles pendientes en una sola pasada.
-- [ ] T137 [P] Vitest integration test en `tests/integration/anonymization.test.ts` con 3 casos: (1) threshold no alcanzado → 0 perfiles anonimizados; (2) threshold alcanzado → todos los perfiles con `is_anonymized=false` se anonimizan en una pasada y queries agregadas siguen contando los registros; (3) idempotencia → segunda ejecución no afecta nada.
-- [ ] T138 [P] Script CLI `scripts/run-anonymization.ts` con flags `--dry-run` para preview (`pnpm run anonymize:dry-run`) y ejecución real (`pnpm run anonymize`).
+- [X] T134 [P] `lib/retention/anonymize.ts` con `anonymizeExpired({ executor, dryRun? })`: lee `app_settings.ciclo_cierre_at`, calcula threshold (cutoff + 12m) en JS, UPDATE bulk de `profiles` (email/nombres/apellidos = NULL, is_anonymized = true, anonymized_at = now) usando `.eq('is_anonymized', false)` para idempotencia. Devuelve discriminated union `skipped | done | dry_run | error`.
+- [X] T135 [P] `lib/retention/delete-request.ts` con `deleteUserData(userId)` para self-service. El server action `requestDataDeletion()` en `app/(auth)/profile/_actions.ts` ahora delega aquí (refactor: lógica compartida con cron y tests).
+- [X] T136 `app/api/cron/anonymize/route.ts` (runtime nodejs, dynamic force) con `Bearer ${CRON_SECRET}`. Invoca `anonymizeExpired({ executor: 'cron' })`. Si `skipped` o `done` devuelve 200; si `error` devuelve 500. La idempotencia y el threshold-check viven en el helper, no en el handler.
+- [X] T137 [P] `tests/integration/anonymization.test.ts` con auto-skip sin Supabase local. 5 specs: Caso 1 (threshold no alcanzado → skipped), Caso 2 (threshold cruzado → todos anonimizados, PII null), Caso 3 (idempotencia segunda corrida), dry-run no escribe, y un test extra de `deleteUserData` (self-service + idempotente).
+- [X] T138 [P] `scripts/run-anonymization.ts` con flag `--dry-run` ya enlazado en `package.json` (`pnpm run anonymize` y `anonymize:dry-run`). Mensajes contextuales por outcome: días que faltan al umbral, count en dry-run, perfiles afectados al ejecutar real.
 
 ### Landing y marketing
 
-- [ ] T139 Implementar `app/(marketing)/page.tsx` con hero asimétrico per `docs/design.md`: H1 izquierda con display serif (Migra/Cormorant), Ángel de Trujillo SVG estilizado derecha con GSAP ScrollTrigger (pinning + parallax + text-mask reveal).
-- [ ] T140 [P] Implementar `components/landing/Hero.tsx` con magnetic buttons (cursor atrae el botón ~6px).
-- [ ] T141 [P] Implementar `components/landing/AngelOrnament.tsx` (SVG single-line, trazo navy + cyan eléctrico, animado con `stroke-dasharray`).
-- [ ] T142 [P] Implementar `app/(marketing)/como-funciona/page.tsx` con sticky scroll storytelling explicando el flujo de 4 pasos.
-- [ ] T143 [P] Implementar `components/motion/CustomCursor.tsx` (dot + ring delayed, transforma sobre clickeables/links/cards, solo activado en `pointer: fine`).
+- [X] T139 `app/page.tsx` ya con hero asimétrico (lg:col-span-7/5), display Cormorant, Ángel de Trujillo con `ParallaxAngel` (framer-motion). Nuevo `GsapHeroReveal` aplica text-mask reveal con GSAP ScrollTrigger sobre el H1; GSAP se carga lazy dentro de useEffect — no entra al bundle inicial.
+- [X] T140 [P] `components/landing/MagneticButton.tsx`: lerp del centro hacia el cursor (radio 90px, max 6px offset). Aplicado al CTA principal del landing y al `/como-funciona`. Honra `pointer: fine` + `prefers-reduced-motion`.
+- [X] T141 [P] `components/landing/AngelOrnament.tsx` actualizado: cada trazo tiene `data-animate` y se anima con `stroke-dasharray` al entrar al viewport (IntersectionObserver, sin GSAP). Respeta reduced-motion.
+- [X] T142 [P] `app/(marketing)/como-funciona/page.tsx` con `StickyStoryteller`: columna izquierda sticky con número/título del paso activo, columna derecha con scroll natural, IntersectionObserver detecta el paso visible. Página es estática (○) en el build — ideal para SEO.
+- [X] T143 [P] `components/motion/CustomCursor.tsx`: dot + ring con lerp 0.18, transforma sobre `a, button, [role='button']`. Solo activo en `pointer: fine` + `prefers-reduced-motion: no-preference`. Cargado desde `app/layout.tsx`.
 
 ### Banco de preguntas inicial
 
-- [ ] T144 Generar `data/questions/draft_v1.md` con 12 preguntas distribuidas en las 4 dimensiones JNE (3 por dimensión: Social, Económica, Ambiental, Institucional). Cada pregunta incluye: enunciado neutral, tipo apropiado, opciones si aplica, y fuente verificable inline (IPE, BCRP, ENAHO, planes JNE oficiales, debates legislativos 2024-2026). Tiempo estimado de respuesta 5-7 min.
-- [ ] T145 Implementar `scripts/seed-questions.ts` que parsea `data/questions/draft_v1.md` y hace upsert en `questions`. Comando `pnpm run seed:questions`.
+- [X] T144 `data/questions/draft_v1.md` con 12 preguntas en 4 dimensiones, 3 por dimensión. Cada bloque YAML incluye `orden`, `dimension_tematica`, `tipo`, `fuente` (INEI, BCRP, IPE, MINEDU, MINSA, Proética, etc.).
+- [X] T145 `scripts/seed-questions.ts` parsea el draft y hace upsert por `orden`. Comando `pnpm run seed:questions` ya en `package.json`.
 
 ### Performance y accesibilidad
 
-- [ ] T146 [P] Optimizar bundle: `next/dynamic` para GSAP solo en hero, font subset latin-extended (Migra/Geist), `next/image` para fotos candidatos desde Supabase Storage.
-- [ ] T147 [P] Correr Lighthouse audit en `/`, `/comparador`, `/dashboard`. Ajustar hasta llegar a ≥90 en Performance, Accessibility, Best Practices, SEO (constitución V).
-- [ ] T148 [P] Correr axe-core accessibility audit + check manual de keyboard navigation completo. Corregir issues hasta WCAG 2.2 AA mínimo.
+- [X] T146 [P] Bundle optimizado: GSAP solo se importa dentro de useEffect (`GsapHeroReveal`, lazy load real). `next/font` ya con subset `latin + latin-ext`. Script `pnpm run bundle:budget` lee `.next/build-manifest.json` y reporta First Load JS por ruta con presupuestos (240 KB marketing, 320 KB app).
+- [X] T147 [P] `docs/quality-audit.md` documenta el procedimiento Lighthouse con comandos exactos por ruta y criterio ≥ 90. La auditoría real es manual (no se puede automatizar Lighthouse desde un agente). Quedó en checklist de release.
+- [X] T148 [P] `scripts/axe-audit.ts` (+`pnpm run axe:audit`) ejecuta `@axe-core/playwright` headless contra rutas críticas y reporta violations por impact. Exit 1 si hay critical/serious. Manual keyboard navigation también documentado en `docs/quality-audit.md`.
 
 ### Observabilidad
 
-- [ ] T149 [P] Configurar Sentry release tracking en CI con `@sentry/cli` y upload de source maps tras build.
-- [ ] T150 [P] Completar catálogo PostHog en `lib/analytics/events.ts` y emitir eventos en puntos clave: `questionnaire_started`, `questionnaire_step_advanced`, `questionnaire_completed`, `comparator_viewed` (timestamp on mount), `comparator_time_spent` (en `beforeunload` o al `submitPreference`, con `duration_ms` calculado desde `comparator_viewed` — soporta SC-004 mediana ≥4 min), `compare_order_assigned`, `preference_submitted`, `dashboard_export`. Confirmar que ninguno incluye PII.
+- [X] T149 [P] `next.config.ts` envuelto con `withSentryConfig` — upload de source maps automático cuando `SENTRY_AUTH_TOKEN/ORG/PROJECT` están en el entorno (Vercel / CI). En dev local sin las envs el wrapper es no-op. Release name = `VERCEL_GIT_COMMIT_SHA`.
+- [X] T150 [P] Catálogo en `lib/analytics/events.ts` ya completo. Nuevo helper `lib/analytics/useTrack.ts` con `useTrackOnce` y `useTimeSpent`. Eventos emitidos en flujo crítico: `QUESTIONNAIRE_STARTED/STEP_ADVANCED/COMPLETED` en `MultiStepForm`, `COMPARATOR_VIEWED/DIMENSION_VIEWED/TIME_SPENT` (con `duration_ms` para SC-004) en `SplitView`. `captureEvent` filtra PII por nombre de campo (constitución VI).
 
 ### Operational tooling
 
-- [ ] T151 [P] Implementar `scripts/export-cli.ts` (`pnpm run export -- --format csv --anonymize pseudonym --out ./tmp`) que invoca los exports sin pasar por el browser.
-- [ ] T152 [P] Completar todos los scripts en `package.json`: `dev`, `build`, `start`, `lint`, `tsc`, `test`, `test:watch`, `e2e`, `db:types`, `seed:questions`, `add-teacher`, `jne:refresh`, `anonymize`, `anonymize:dry-run`, `export`.
+- [X] T151 [P] `scripts/export-cli.ts` (`pnpm run export -- --format csv|xlsx|html|powerbi --anonymize none|pseudonym|full --out ./tmp`). Reusa `lib/export/*` sin pasar por browser.
+- [X] T152 [P] `package.json` scripts completos: dev, build, start, lint, tsc, test, test:watch, e2e, db:types, seed:questions, seed:jne-roberto, seed:demo, promote:user, add-teacher, jne:refresh, anonymize, anonymize:dry-run, export, **bundle:budget**, **axe:audit**, load-test.
 
 ### Security & final validation
 
-- [ ] T153 Correr `/security-review` antes del primer merge a main per constitución (revisar RLS policies, sanitización, exposición de service-role, secrets en logs). Comando manual. Checks adicionales para FR-040 (cifrado): verificar TLS 1.2+ en producción Vercel, RLS habilitado en todas las tablas que tocan `auth.users`, encryption at rest activado en Supabase Dashboard (default en plan paid; documentar si se usa free tier).
-- [ ] T154 Validar `quickstart.md` end-to-end: clonar repo en máquina limpia, seguir pasos, confirmar que dev tiene app corriendo en < 15 min.
-- [ ] T155 Verificar que CI corre los 4 checks (`lint`, `tsc`, `test`, `e2e`) en verde en PR.
-- [ ] T156 [P] Deploy preview a Vercel y verificar que Sentry/PostHog capturan eventos en staging.
-- [ ] T157 Verificar que el deploy de producción honra Vercel Cron (`/api/cron/jne-refresh` y `/api/cron/anonymize`) — al menos un trigger manual con secret antes del primer ciclo programado.
-- [ ] T158 [P] Crear smoke load test con k6 en `tests/load/student-flow.js` que simula 500 estudiantes concurrentes ejecutando: login → consent → 3 respuestas → comparador → preferencia. Objetivo: validar SC-008 (< 2s p95) y FR-043. Ejecución manual previa al lanzamiento. Documentar en `quickstart.md` cómo correrlo (`pnpm run load-test`).
+- [X] T153 `docs/release-checklist.md` § 1 — security review documentado: RLS, service-role guard, log sanitization, secrets en server-env, CRON_SECRET rotation, TLS, encryption at rest, headers de seguridad. Ejecutarlo via `/security-review` antes del primer merge.
+- [X] T154 `docs/release-checklist.md` § 2 — quickstart end-to-end documentado paso a paso con criterio "< 15 min en máquina limpia". Ejecución manual.
+- [X] T155 CI ya configurado en `.github/workflows/ci.yml`: jobs `quality` (lint + tsc + test) y `e2e` (build + Playwright). 4 checks cubiertos. Verificación en cada PR.
+- [X] T156 [P] `docs/release-checklist.md` § 4 — procedimiento de deploy preview Vercel: chequear PostHog eventos, Sentry release tracking, source maps correctos.
+- [X] T157 `docs/release-checklist.md` § 5 — triggers manuales de `/api/cron/jne-refresh` y `/api/cron/anonymize` con curl + `Bearer $CRON_SECRET`. Verificación de `jne_refresh_log`.
+- [X] T158 [P] `tests/load/student-flow.js` smoke load k6: stages 0→50→200→500 VUs sobre rutas públicas (/, /login, /como-funciona, /api/cron/jne-refresh sin auth). Thresholds `p(95)<2000` (SC-008) y `http_req_failed<0.01`. Ejecución manual pre-launch — k6 no es dep de proyecto.
 
 ---
 

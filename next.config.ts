@@ -1,13 +1,13 @@
+import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  experimental: {
-    // typedRoutes se rehabilita en Phase 3 cuando todas las rutas existan.
-    // Mientras tanto los redirects a /login, /dashboard, etc. usan strings.
-    typedRoutes: false,
-  },
+  // typedRoutes salió de experimental en Next 16.2. Se rehabilita más adelante
+  // (Phase 7) cuando todas las rutas tipadas estén estables; mientras tanto los
+  // redirects usan strings.
+  typedRoutes: false,
   images: {
     remotePatterns: [
       {
@@ -37,4 +37,20 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Wrap con Sentry para upload automático de source maps y release tracking.
+// Solo actúa si `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` y `SENTRY_PROJECT` están en el
+// entorno (Vercel + CI). En dev local sin estas envs, el wrapper es no-op y la
+// build continúa normal — no rompe la DX.
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  sourcemaps: { disable: false },
+  disableLogger: true,
+  // Release name: si Vercel inyecta VERCEL_GIT_COMMIT_SHA lo usamos; sino se
+  // autodetecta del git local.
+  release: {
+    name: process.env.VERCEL_GIT_COMMIT_SHA ?? undefined,
+  },
+});

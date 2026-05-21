@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -9,6 +9,9 @@ import {
   type CandidateData,
   type CandidateDimensionData,
 } from "./CandidateColumn";
+import { captureEvent } from "@/lib/analytics/posthog";
+import { useTrackOnce } from "@/lib/analytics/useTrack";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
 
 type DimensionKey = "social" | "economica" | "ambiental" | "institucional";
 
@@ -29,6 +32,36 @@ export interface SplitViewData {
 export function SplitView({ data }: { data: SplitViewData }) {
   const [tab, setTab] = useState<DimensionKey>("social");
   const active = DIMENSIONS.find((d) => d.key === tab)!;
+  const viewedDimensions = useRef<Set<DimensionKey>>(new Set(["social"]));
+  const enteredAt = useRef<number>(0);
+
+  // Comparador visualizado (una vez por sesión del componente).
+  useTrackOnce(ANALYTICS_EVENTS.COMPARATOR_VIEWED);
+
+  // Tiempo total en el comparador — útil para SC-004 (mediana ≥ 4 min).
+  useEffect(() => {
+    enteredAt.current = Date.now();
+    const start = enteredAt.current;
+    function emit() {
+      captureEvent(ANALYTICS_EVENTS.COMPARATOR_TIME_SPENT, {
+        duration_ms: Date.now() - start,
+        dimensions_viewed: viewedDimensions.current.size,
+      });
+    }
+    window.addEventListener("beforeunload", emit);
+    return () => {
+      emit();
+      window.removeEventListener("beforeunload", emit);
+    };
+  }, []);
+
+  function handleTabChange(next: DimensionKey) {
+    if (next !== tab) {
+      viewedDimensions.current.add(next);
+      captureEvent(ANALYTICS_EVENTS.COMPARATOR_DIMENSION_VIEWED, { dimension: next });
+    }
+    setTab(next);
+  }
 
   return (
     <div className="space-y-8">
@@ -41,7 +74,7 @@ export function SplitView({ data }: { data: SplitViewData }) {
               <button
                 key={d.key}
                 type="button"
-                onClick={() => setTab(d.key)}
+                onClick={() => handleTabChange(d.key)}
                 className={`relative shrink-0 px-5 py-3 text-sm font-medium transition ${
                   isActive
                     ? "text-[var(--color-navy-upao)]"

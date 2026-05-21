@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 
 import { profileSchema } from "@/lib/validation/profile.schema";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { deleteUserData } from "@/lib/retention/delete-request";
 import { logger } from "@/lib/utils/logger";
 import { err, ok, type Result } from "@/lib/errors";
 
@@ -51,8 +51,10 @@ export async function updateProfile(input: unknown): Promise<Result<{ redirectTo
 }
 
 /**
- * Self-service deletion (FR-041, Ley 29733).
- * El estudiante puede solicitar borrado de PII en cualquier momento.
+ * Self-service deletion (FR-041). El estudiante puede solicitar borrado de
+ * su información personal en cualquier momento. Delega en
+ * `lib/retention/delete-request.ts` para compartir la lógica con tests y
+ * scripts CLI.
  */
 export async function requestDataDeletion(): Promise<Result<{ done: true }>> {
   const correlationId = logger.correlationId();
@@ -62,34 +64,10 @@ export async function requestDataDeletion(): Promise<Result<{ done: true }>> {
   } = await supabase.auth.getUser();
   if (!user) return err({ code: "Unauthenticated" });
 
-  const admin = createAdminClient();
-  const now = new Date().toISOString();
-
-  const { error: updErr } = await admin
-    .from("profiles")
-    .update({
-      email: null,
-      nombres: null,
-      apellidos: null,
-      is_anonymized: true,
-      anonymized_at: now,
-    })
-    .eq("id", user.id);
-
-  if (updErr) {
-    logger.error("requestDataDeletion failed", { correlationId, dbCode: updErr.code });
+  const result = await deleteUserData(user.id);
+  if (!result.ok) {
+    logger.error("requestDataDeletion failed", { correlationId, reason: result.reason });
     return err({ code: "Unexpected", correlationId });
-  }
-
-  const { error: logErr } = await admin.from("anonymization_log").insert({
-    affected_rows: 1,
-    cycle_close_date_cutoff: now,
-    executor: "user_request",
-  });
-  if (logErr) {
-    logger.warn("anonymization_log insert failed (deletion still happened)", {
-      correlationId,
-    });
   }
 
   await supabase.auth.signOut();

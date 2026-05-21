@@ -173,7 +173,8 @@ export function LoginCard({
       </button>
 
       <p className="text-center text-xs leading-relaxed text-[var(--color-muted-foreground)]">
-        Al ingresar aceptas que tus datos serán tratados según la Ley N° 29733.
+        Al ingresar aceptas el tratamiento académico y anonimizable de tus
+        datos personales.
         <br />
         Esta plataforma no emite recomendaciones de voto.
       </p>

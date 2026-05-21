@@ -30,7 +30,7 @@ export default async function LoginPage({
       title={
         "Ingresa con tu cuenta institucional, personal o tu correo."
       }
-      description="Tu participación es académica y privada. Cumplimos la Ley 29733 — Protección de Datos Personales del Perú."
+      description="Tu participación es académica y privada. Tratamos tus datos personales con consentimiento explícito y los anonimizamos al cierre del ciclo."
       aside={
         <div className="space-y-4 rounded-2xl border-l-2 border-[var(--color-cyan-deep)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-soft)]">
           <p className="editorial-kicker">Cómo continúa</p>

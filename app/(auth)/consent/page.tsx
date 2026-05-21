@@ -46,7 +46,7 @@ export default async function ConsentPage() {
     <AuthShell
       step={1}
       total={2}
-      kicker="Consentimiento informado · Ley 29733"
+      kicker="Consentimiento informado"
       title={"Antes de empezar, sepamos en qué estás de acuerdo."}
       description="Lee con calma. Solo necesitamos lo mínimo para que el docente analice tendencias por facultad y carrera. Sin DNI, sin teléfono, sin dirección."
       aside={
@@ -75,7 +75,8 @@ function ConsentSummary() {
           Solo el docente del curso, en forma agregada. Tú nunca ves los datos de otros.
         </Item>
         <Item k="Borrado a pedido">
-          En cualquier momento desde tu perfil. Conforme a la Ley N° 29733.
+          En cualquier momento desde tu perfil. Tienes derecho a acceder,
+          rectificar y oponerte al tratamiento de tus datos.
         </Item>
       </dl>
     </div>
