@@ -52,43 +52,43 @@ Single-project Next.js 16 App Router. Rutas relativas a la raíz del repo. Estru
 
 ### Database schema y RLS
 
-- [ ] T013 Crear `supabase/migrations/0001_init_schema.sql` con ENUMs (`user_role`, `compare_order_enum`, `dim_tematica_enum`, `question_type_enum`) y 13 tablas según `data-model.md` (profiles, consent_events, questions, answers, candidates, plans, plan_dimensions, preferences, allowed_teachers, usage_events, jne_refresh_log, anonymization_log, app_settings). Incluir índices y constraints.
-- [ ] T014 Crear `supabase/migrations/0002_rls_policies.sql` habilitando RLS en todas las tablas con `auth.users` y definiendo policies por rol según la matriz en `data-model.md` § Políticas RLS.
-- [ ] T015 Crear `supabase/migrations/0003_triggers.sql` con: `on_auth_user_created` (crea profile, eleva a teacher si match en allowed_teachers), `profiles_set_email_institucional`, `answers_snapshot_lock`, `preferences_immutable`, `questions_no_delete`, `updated_at_trigger` genérico.
-- [ ] T016 Crear `supabase/migrations/0004_helper_functions.sql` con `current_role()` SECURITY DEFINER y `assign_compare_order_random()` que retorna `'keiko_left'` o `'roberto_left'` con probabilidad 0.5.
-- [ ] T017 Crear `supabase/migrations/0005_seed_jne.sql` que carga `candidates`, `plans`, `plan_dimensions` desde los JSONs en `data/jne/raw/` (Keiko id 1366/plan 29690, Roberto id 1264/plan 29688). Usar `pg_read_file` o INSERT estático parseado.
-- [ ] T018 Crear `supabase/migrations/0006_views_dashboard.sql` con materialized views `mv_kpis_curso`, `mv_preferencia_por_carrera`, `mv_orden_vs_preferencia` + índices únicos para soportar `REFRESH CONCURRENTLY`.
-- [ ] T019 Crear `supabase/migrations/0007_seed_allowed_teachers.sql` con tabla vacía y comentario explicativo (admin agrega correos vía script o SQL después).
+- [X] T013 0001_init_schema.sql — ENUMs (user_role, compare_order_enum, dim_tematica_enum, question_type_enum) + 13 tablas + índices + CHECK constraints. Extensions: pgcrypto, citext, pg_trgm.
+- [X] T014 0003_rls_policies.sql — RLS habilitado en 11 tablas con `auth.users`. Policies por rol según matriz de data-model.md. RLS de answers chequea questionnaire_completed_at para bloquear edición post-envío.
+- [X] T015 0004_triggers.sql — on_auth_user_created (crea profile + eleva rol si está en allowed_teachers), profiles_set_email_institucional, answers_snapshot_lock, preferences_immutable, questions_no_delete (soft delete), updated_at triggers.
+- [X] T016 0002_helper_functions.sql — `current_role()` SECURITY DEFINER (usada por RLS), `assign_compare_order_random()` 50/50, `hash_opaque_user_id()` SHA-256, `set_updated_at()` genérico.
+- [X] T017 0005_seed_jne.sql — Inserta Keiko (id 245741, plan 29690) y Roberto (id 246281, plan 29688) en candidates + plans. 4 dimensiones completas de Keiko. Placeholders NULL de las 4 dimensiones de Roberto (UI muestra "No declarado por el JNE" — FR-018 — hasta que el cron jne-refresh las pueble o un script las cargue desde el JSON).
+- [X] T018 0006_views_dashboard.sql — 4 materialized views: mv_kpis_curso, mv_preferencia_por_carrera, mv_orden_vs_preferencia (control Q4), mv_evolucion_temporal (TZ Lima). Índices únicos para `REFRESH CONCURRENTLY`.
+- [X] T019 0007_seed_allowed_teachers.sql — Tabla vacía con comentario. Admin puebla vía script `add-teacher` o SQL.
 
 ### Supabase clients
 
-- [ ] T020 [P] Implementar `lib/supabase/browser.ts` con `createBrowserClient` del `@supabase/ssr`.
-- [ ] T021 [P] Implementar `lib/supabase/server.ts` con `createServerClient` y handler de cookies para RSC + Server Actions.
-- [ ] T022 [P] Implementar `lib/supabase/middleware.ts` con `createMiddlewareClient` + refresh de cookies.
-- [ ] T023 [P] Implementar `lib/supabase/admin.ts` con cliente service-role (uso restringido: cron handlers y operaciones admin SOLO en server-side).
-- [ ] T024 Configurar script `pnpm run db:types` en `package.json` que ejecuta `supabase gen types typescript --local > lib/supabase/database.types.ts`. Correr una vez para generar el archivo base.
+- [X] T020 [P] `lib/supabase/browser.ts` — createBrowserClient para Client Components.
+- [X] T021 [P] `lib/supabase/server.ts` — createServerClient para RSC + Server Actions con cookie handler tolerante a contextos read-only.
+- [X] T022 [P] `lib/supabase/middleware.ts` — createMiddlewareClient para refresh de sesión en Edge runtime.
+- [X] T023 [P] `lib/supabase/admin.ts` — createAdminClient service-role con guard `typeof window !== "undefined"` para falla en caliente si se importa mal.
+- [X] T024 `pnpm run db:types` — Script configurado y ejecutado. `lib/supabase/database.types.ts` regenerado con esquema real (placeholder reemplazado).
 
 ### Core infra
 
-- [ ] T025 [P] Implementar `lib/errors.ts` con discriminated union `AppError` y `Result<T, E>` per `contracts/server-actions.md`.
-- [ ] T026 [P] Implementar `lib/rate-limit/upstash.ts` con `Ratelimit.slidingWindow(5, '1 m')` keyed by `user_id`.
-- [ ] T027 [P] Implementar `lib/auth/turnstile.ts` con `verifyTurnstileToken(token)` que llama a `https://challenges.cloudflare.com/turnstile/v0/siteverify` server-side.
-- [ ] T028 [P] Implementar `lib/auth/role.ts` con `getCurrentRole()`, `assertRole(role)`, `isStudent()`, `isTeacher()`, `isAdmin()` usando React `cache()` por request.
-- [ ] T029 [P] Implementar `lib/auth/allowed-teachers.ts` con funciones de check para el trigger y para `addAllowedTeacher`/`removeAllowedTeacher`.
-- [ ] T030 [P] Implementar `lib/auth/session.ts` con helper de expiración 24h y reconstrucción de contexto del estudiante donde quedó.
-- [ ] T031 [P] Inicializar Sentry en `sentry.server.config.ts`, `sentry.client.config.ts`, `sentry.edge.config.ts` + `instrumentation.ts`. DSN desde env.
-- [ ] T032 [P] Inicializar PostHog en `lib/analytics/posthog.ts` (capture sin PII) y `app/providers.tsx`. Definir catálogo inicial de eventos en `lib/analytics/events.ts`.
-- [ ] T033 [P] Implementar `lib/utils/opaque-id.ts` con `nanoid` wrappers y `hashUserId(uuid)` SHA-256 para `usage_events`.
-- [ ] T034 [P] Implementar `lib/utils/logger.ts` con structured JSON logging para server actions y route handlers (sin PII por filtro explícito).
-- [ ] T035 [P] Implementar `lib/utils/tz.ts` con helpers para zona horaria `America/Lima` y formateo ISO.
+- [X] T025 [P] `lib/errors.ts` — Discriminated union AppError + Result<T, E> + helpers `ok()`/`err()` + `ERROR_MESSAGES` legibles en español (constitución VI).
+- [X] T026 [P] `lib/rate-limit/upstash.ts` — Ratelimit.slidingWindow(5, "1 m") con fallback no-op si Upstash no está configurado (dev/CI sin cuenta).
+- [X] T027 [P] `lib/auth/turnstile.ts` — verifyTurnstileToken con timeout 5s y modo permisivo en dev/CI sin secret.
+- [X] T028 [P] `lib/auth/role.ts` — getCurrentRole (React `cache()`), isStudent/isTeacher/isAdmin, assertRole.
+- [X] T029 [P] `lib/auth/allowed-teachers.ts` — listAllowedTeachers, addAllowedTeacher (eleva rol si profile existe), removeAllowedTeacher.
+- [X] T030 [P] `lib/auth/session.ts` — requireUser (redirect /login), getOptionalUser, resolveStudentResumePath (edge case "sesión expirada").
+- [X] T031 [P] Sentry inicializado en sentry.server.config.ts, sentry.client.config.ts, sentry.edge.config.ts + instrumentation.ts con onRequestError. beforeSend sanitiza `user` a solo `id`.
+- [X] T032 [P] PostHog en `app/providers.tsx` (init client-only con autocapture off, captureleave on). Wrapper `lib/analytics/posthog.ts` filtra PII por nombre de campo. Catálogo en `lib/analytics/events.ts`.
+- [X] T033 [P] `lib/utils/opaque-id.ts` — hashUserId, hashIp, generateOpaqueId, generateCorrelationId.
+- [X] T034 [P] `lib/utils/logger.ts` — JSON estructurado por línea, filtra PII (email, password, token, etc.), niveles debug/info/warn/error.
+- [X] T035 [P] `lib/utils/tz.ts` — dayjs con plugin tz + locale es. Helpers toLima, formatLimaShort, isoLima, fromNowLima.
 
 ### Middleware y layouts globales
 
-- [ ] T036 Implementar `middleware.ts` en raíz (Edge runtime): refresh de sesión Supabase, role-gating (bloquea `student` en `/dashboard` y `/admin/*`, redirige no autenticados en rutas protegidas), rate-limit en submits sensibles, verificación de Turnstile en endpoints marcados.
-- [ ] T037 [P] Implementar `app/layout.tsx` (root) con fonts Migra/Geist Sans/Geist Mono, Sentry boundary, providers (PostHog, theme), Lenis provider wrapper.
-- [ ] T038 [P] Implementar `components/motion/LenisProvider.tsx` con smooth scroll global (lerp 0.1, smoothWheel true, syncTouch true).
-- [ ] T039 [P] Implementar `app/error.tsx` y `app/not-found.tsx` con captura Sentry y mensaje contextual al usuario.
-- [ ] T040 Verificar y completar en `quickstart.md` la sección de configuración manual de OAuth providers en Supabase Dashboard (Google + Microsoft + email/password), redirect URIs locales y producción, y rotación del `CRON_SECRET`. Entrega: checklist explícito en `quickstart.md` § 2-3 que el primer dev puede seguir sin ambigüedad.
+- [X] T036 `proxy.ts` en raíz (renamed desde `middleware.ts` por convención Next 16). Edge runtime. Refresh sesión Supabase + role-gating (student/teacher/admin paths) + redirect a /login con `?next=`.
+- [X] T037 `app/layout.tsx` con fonts Geist Sans + Geist Mono (next/font/google), Providers (PostHog + LenisProvider), themeColor light/dark, locale es-PE.
+- [X] T038 `components/motion/LenisProvider.tsx` con lerp 0.1, smoothWheel, syncTouch. Honra `prefers-reduced-motion`.
+- [X] T039 `app/error.tsx` con Sentry.captureException + mensaje contextual + botón Reintentar. `app/not-found.tsx` con 404 editorial.
+- [X] T040 Configuración manual OAuth documentada en `quickstart.md` § 2 (Google + Microsoft + email + rotación CRON_SECRET con `openssl rand -hex 32`). `app/(auth)/auth/callback/route.ts` implementado (intercambia code → resolveStudentResumePath).
 
 **Checkpoint**: Foundation lista. User stories pueden comenzar en paralelo.
 

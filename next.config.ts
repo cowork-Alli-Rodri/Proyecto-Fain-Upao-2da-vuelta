@@ -4,7 +4,9 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   experimental: {
-    typedRoutes: true,
+    // typedRoutes se rehabilita en Phase 3 cuando todas las rutas existan.
+    // Mientras tanto los redirects a /login, /dashboard, etc. usan strings.
+    typedRoutes: false,
   },
   images: {
     remotePatterns: [

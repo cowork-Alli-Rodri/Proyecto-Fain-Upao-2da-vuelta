@@ -41,7 +41,25 @@ Copy-Item .env.example .env.local
 Copy-Item .env.example .env.test
 ```
 
-Variables mínimas para desarrollo:
+### Configuración manual de OAuth providers en Supabase Dashboard
+
+Para que el login OAuth funcione (FR-001), Rodrigo debe configurar los providers UNA vez en el Supabase Dashboard del proyecto remoto. Para desarrollo local con `supabase start`, puedes saltarte este paso y usar solo email/password.
+
+**Pasos para producción**:
+
+1. Ve a https://supabase.com/dashboard → Project → Authentication → Providers.
+2. Habilita **Google**:
+   - Crea credenciales OAuth en https://console.cloud.google.com/apis/credentials.
+   - Authorized redirect URIs: `https://<tu-proyecto>.supabase.co/auth/v1/callback`.
+   - Pega Client ID + Client Secret en Supabase.
+3. Habilita **Microsoft** (Azure AD):
+   - Registra app en https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps.
+   - Redirect URI: `https://<tu-proyecto>.supabase.co/auth/v1/callback`.
+   - Pega Application (client) ID + Client Secret en Supabase.
+4. Habilita **Email** con confirmación deshabilitada para el piloto (para evitar fricción en estudiantes que olvidan confirmar el correo).
+5. **Rotar `CRON_SECRET`** generando uno nuevo con `openssl rand -hex 32` y pegándolo en Vercel → Settings → Environment Variables.
+
+### Variables mínimas para desarrollo
 
 ```dotenv
 # Supabase local (auto-llenado por `supabase start`)
@@ -88,10 +106,22 @@ Esto arranca Postgres 16, GoTrue (Auth), Storage, Realtime y Studio en `http://1
 Aplicar migraciones y seeds:
 
 ```powershell
-supabase db reset
+pnpm exec supabase db reset
+pnpm run seed:questions      # banco inicial de preguntas (12, 4 dimensiones)
+pnpm run seed:jne-roberto    # llena las 4 dimensiones de Roberto desde el JSON
 ```
 
-Esto corre todas las migraciones en orden + `supabase/seed.sql` (si existe). El seed JNE carga los JSONs de `data/jne/raw/` en `candidates`, `plans`, `plan_dimensions`.
+Esto corre todas las migraciones en orden, carga seed JNE de Keiko (4 dimensiones completas) y luego los dos scripts completan Roberto y el banco de preguntas.
+
+**Aviso**: si reinicias Docker (o tu PC), la DB se pierde. Cuando vuelvas a hacer `supabase start`, la DB arranca vacía. Para restaurar:
+
+```powershell
+pnpm exec supabase db reset    # reaplica las 7 migraciones
+pnpm run seed:questions        # repuebla preguntas
+pnpm run seed:jne-roberto      # repuebla Roberto
+```
+
+No se necesitan acciones adicionales: el script de migraciones es idempotente y los seeds usan UPDATE/UPSERT.
 
 ---
 
