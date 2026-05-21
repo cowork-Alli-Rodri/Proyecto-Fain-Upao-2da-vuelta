@@ -1,99 +1,160 @@
 @import "tailwindcss";
 
 /*
- * Tokens de diseño UPAO Voto Informado
- * Fuente: docs/design.md
- * Paleta OKLCH para colores. Fonts: Migra (display), Geist Sans (UI), Geist Mono (numeric).
+ * ============================================================================
+ * Voto Informado UPAO — Design system
+ * ============================================================================
+ * Inspiración: MIT Election Lab (editorial), Tremor (data viz), Flourish.
+ * Paleta OKLCH — institucional UPAO (navy) + acento cyan eléctrico + colores
+ * de partido aplicados solo en el comparador.
+ *
+ * Light mode forzado en v1. Dark mode se introduce manual en Phase 7.
+ * ============================================================================
  */
 
 @theme {
   /* ---------- Color tokens (OKLCH equivalents en sRGB) ---------- */
-  --color-navy-upao: oklch(28.5% 0.118 263);          /* #002855 */
-  --color-navy-deep: oklch(20.8% 0.121 263);          /* #001a3d */
-  --color-cyan-electric: oklch(87.5% 0.156 213);      /* #00E5FF */
-  --color-mango-sun: oklch(82.5% 0.165 80);           /* #FFB400 */
-  --color-coral-pulse: oklch(67.5% 0.225 14);         /* #FF3D6E */
-  --color-mint-success: oklch(74.5% 0.165 168);       /* #00C896 */
+  --color-navy-upao: oklch(28.5% 0.118 263);
+  --color-navy-deep: oklch(20.8% 0.121 263);
+  --color-navy-soft: oklch(45% 0.085 263);
 
-  --color-off-white: oklch(98.5% 0.005 280);          /* #FAFAFC */
-  --color-paper: oklch(95.5% 0.008 80);               /* #F2F0EC */
-  --color-charcoal: oklch(20.5% 0.01 260);            /* #1A1D23 */
-  --color-ink: oklch(14% 0.01 260);                   /* #0E1014 */
-  --color-smoke: oklch(48.5% 0.012 260);              /* #5C6470 */
+  --color-cyan-electric: oklch(87.5% 0.156 213);
+  --color-cyan-deep: oklch(58% 0.135 213);
 
-  --color-candidate-keiko: oklch(68% 0.175 50);       /* #F26522 */
-  --color-candidate-roberto: oklch(56% 0.135 145);    /* #2D8B47 */
+  --color-mango-sun: oklch(82.5% 0.165 80);
+  --color-coral-pulse: oklch(67.5% 0.225 14);
+  --color-mint-success: oklch(74.5% 0.165 168);
+
+  --color-off-white: oklch(99% 0.003 280);
+  --color-paper: oklch(96.5% 0.006 80);
+  --color-bone: oklch(94% 0.008 80);
+
+  --color-charcoal: oklch(20.5% 0.01 260);
+  --color-ink: oklch(14% 0.01 260);
+  --color-graphite: oklch(28% 0.012 260);
+  --color-smoke: oklch(50% 0.012 260);
+  --color-mist: oklch(72% 0.008 260);
+
+  --color-candidate-keiko: oklch(68% 0.175 50);
+  --color-candidate-roberto: oklch(56% 0.135 145);
+
+  /* ---------- Tokens semánticos (light) ---------- */
+  --color-background: var(--color-off-white);
+  --color-foreground: var(--color-ink);
+  --color-surface: white;
+  --color-surface-2: var(--color-paper);
+  --color-surface-3: var(--color-bone);
+  --color-border: oklch(88% 0.008 260);
+  --color-border-strong: oklch(80% 0.012 260);
+  --color-muted: var(--color-smoke);
+  --color-muted-foreground: var(--color-graphite);
+  --color-ring: var(--color-cyan-deep);
+
+  /* ---------- shadcn token aliases (light) ---------- */
+  --background: var(--color-background);
+  --foreground: var(--color-foreground);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-foreground);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-foreground);
+  --primary: var(--color-navy-upao);
+  --primary-foreground: white;
+  --secondary: var(--color-surface-2);
+  --secondary-foreground: var(--color-foreground);
+  --muted: var(--color-surface-2);
+  --muted-foreground: var(--color-graphite);
+  --accent: var(--color-surface-3);
+  --accent-foreground: var(--color-foreground);
+  --destructive: var(--color-coral-pulse);
+  --destructive-foreground: white;
+  --border: var(--color-border);
+  --input: var(--color-border-strong);
+  --ring: var(--color-cyan-deep);
 
   /* ---------- Typography ---------- */
-  --font-sans: "Geist Sans", "Helvetica Neue", system-ui, sans-serif;
-  --font-mono: "Geist Mono", ui-monospace, monospace;
-  --font-display: "Migra", "Cormorant Garamond", "Times New Roman", serif;
+  --font-sans: var(--font-geist-sans), "Helvetica Neue", system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-display: var(--font-cormorant), "Cormorant Garamond", "Times New Roman", serif;
 
-  /* ---------- Border radius (mixto, no todo igual) ---------- */
+  /* ---------- Border radius ---------- */
   --radius-button: 0.5rem;
   --radius-card: 0.75rem;
   --radius-pill: 2rem;
+  --radius: 0.625rem;
 
   /* ---------- Shadows ---------- */
-  --shadow-fluffy: 0 25px 50px -12px oklch(28.5% 0.118 263 / 0.15);
-  --shadow-neon: 0 0 40px oklch(87.5% 0.156 213 / 0.10);
+  --shadow-fluffy: 0 25px 50px -12px oklch(28.5% 0.118 263 / 0.10);
+  --shadow-soft: 0 1px 2px oklch(0% 0 0 / 0.04), 0 8px 24px -8px oklch(0% 0 0 / 0.08);
+  --shadow-ring: 0 0 0 1px var(--color-border), 0 1px 2px oklch(0% 0 0 / 0.04);
 
   /* ---------- Animations ---------- */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ---------- Reset + base ---------- */
-:root {
-  color-scheme: light dark;
-  --background: var(--color-off-white);
-  --foreground: var(--color-ink);
-  --surface: var(--color-paper);
-  --muted: var(--color-smoke);
-  --ring: var(--color-cyan-electric);
-}
+/* ============================================================================
+ * Reset + base
+ * ============================================================================ */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: var(--color-charcoal);
-    --foreground: var(--color-off-white);
-    --surface: var(--color-navy-deep);
-    --muted: var(--color-smoke);
-  }
+:root {
+  color-scheme: light;
 }
 
 * {
   box-sizing: border-box;
-  border-color: color-mix(in oklch, currentColor 12%, transparent);
+  border-color: var(--color-border);
 }
 
 html {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: var(--color-background);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--color-background);
+  color: var(--color-foreground);
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.6;
-  font-feature-settings: "rlig" 1, "calt" 1;
+  font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
+  min-height: 100vh;
 }
 
 ::selection {
-  background: var(--color-cyan-electric);
-  color: var(--color-navy-deep);
+  background: var(--color-navy-upao);
+  color: white;
 }
 
-/* Focus visible: ring 3px cyan eléctrico con offset 2px */
+/* ============================================================================
+ * Tipografía display
+ * ============================================================================ */
+
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum" 1, "ss01" 1;
+}
+
+/* ============================================================================
+ * Focus rings — accesibles, identidad cyan
+ * ============================================================================ */
+
 :focus-visible {
-  outline: 3px solid var(--color-cyan-electric);
+  outline: 2px solid var(--color-cyan-deep);
   outline-offset: 2px;
   border-radius: 4px;
 }
 
-/* Honra prefers-reduced-motion */
+/* ============================================================================
+ * Honra prefers-reduced-motion
+ * ============================================================================ */
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -105,15 +166,45 @@ body {
   }
 }
 
-/* Display serif para H1 grandes (≥40px) */
-.font-display {
-  font-family: var(--font-display);
-  font-weight: 400;
-  letter-spacing: -0.02em;
+/* ============================================================================
+ * Patrón decorativo: línea editorial sutil (uso en headers)
+ * ============================================================================ */
+
+.editorial-rule {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    var(--color-navy-upao) 0%,
+    var(--color-navy-upao) 60%,
+    transparent 100%
+  );
 }
 
-/* Geist Mono con tabular figures para números del dashboard */
-.font-mono {
+.editorial-kicker {
   font-family: var(--font-mono);
-  font-feature-settings: "tnum" 1;
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-cyan-deep);
+}
+
+/* ============================================================================
+ * Inputs y forms — fix de contraste obligatorio
+ * ============================================================================ */
+
+input,
+textarea,
+select {
+  background: var(--color-surface);
+  color: var(--color-foreground);
+  border-color: var(--color-border-strong);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-mist);
+}
+
+label {
+  color: var(--color-foreground);
 }

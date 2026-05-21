@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { ProfileForm } from "./_components/ProfileForm";
+import { AuthShell } from "../_components/AuthShell";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -15,7 +16,6 @@ export default async function ProfilePage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  // Si no aceptó consentimiento, mandarlo allá primero
   const { data: consent } = await supabase
     .from("consent_events")
     .select("id")
@@ -31,23 +31,17 @@ export default async function ProfilePage() {
     .single();
 
   return (
-    <main className="min-h-screen bg-[var(--background)] py-12 px-4">
-      <div className="mx-auto max-w-2xl space-y-8">
-        <header className="space-y-2">
-          <p className="text-xs uppercase tracking-widest text-[var(--color-smoke)]">
-            Paso 2 de 2
-          </p>
-          <h1 className="font-display text-3xl text-[var(--color-navy-upao)]">
-            Tu perfil académico
-          </h1>
-          <p className="text-sm text-[var(--color-smoke)]">
-            Estos datos nos permiten al docente analizar las respuestas agregadas por facultad
-            y carrera. No solicitamos DNI, dirección ni teléfono.
-          </p>
-        </header>
-
-        <ProfileForm
-          defaults={(profile as Partial<{
+    <AuthShell
+      step={2}
+      total={2}
+      kicker="Perfil académico"
+      title="Cuéntanos lo justo. Nada de DNI ni teléfono."
+      description="Estos datos permiten al docente analizar las respuestas agregadas por facultad y carrera. Tu información personal queda protegida por RLS y se anonimiza después del ciclo."
+      aside={<ProfileSidebar />}
+    >
+      <ProfileForm
+        defaults={
+          (profile as Partial<{
             nombres: string;
             apellidos: string;
             facultad: string;
@@ -55,9 +49,30 @@ export default async function ProfilePage() {
             ciclo: number;
             rango_edad: string;
             genero: string | null;
-          }> | null) ?? {}}
-        />
-      </div>
-    </main>
+          }> | null) ?? {}
+        }
+      />
+    </AuthShell>
+  );
+}
+
+function ProfileSidebar() {
+  return (
+    <div className="space-y-4 rounded-2xl border-l-2 border-[var(--color-cyan-deep)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-soft)]">
+      <p className="editorial-kicker">Lo que no preguntamos</p>
+      <ul className="space-y-2 text-sm text-[var(--color-graphite)]">
+        {["DNI", "Dirección", "Teléfono", "Datos bancarios", "Información de salud"].map(
+          (item) => (
+            <li key={item} className="flex items-center gap-2">
+              <span className="font-mono text-xs text-[var(--color-coral-pulse)]">×</span>
+              <span>{item}</span>
+            </li>
+          ),
+        )}
+      </ul>
+      <p className="border-t border-[var(--color-border)] pt-4 text-xs leading-relaxed text-[var(--color-muted-foreground)]">
+        Solicitamos solo lo mínimo para el análisis pedagógico. Cumplimiento Ley 29733.
+      </p>
+    </div>
   );
 }

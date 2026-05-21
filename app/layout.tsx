@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Cormorant_Garamond } from "next/font/google";
 
 import { Providers } from "./providers";
 import "./globals.css";
@@ -13,6 +13,13 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin", "latin-ext"],
+  display: "swap",
+});
+
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -37,10 +44,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#FAFAFC" },
-    { media: "(prefers-color-scheme: dark)", color: "#0E1014" },
-  ],
+  themeColor: "#FAFAFC",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -53,7 +57,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es-PE" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable}`}
+        style={{ fontFamily: "var(--font-geist-sans)" }}
+      >
         <Providers>{children}</Providers>
       </body>
     </html>

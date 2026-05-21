@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { SplitView, type SplitViewData } from "@/components/compare/SplitView";
@@ -8,7 +9,6 @@ import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Comparador" };
 
-// IDs estables del JNE
 const CANDIDATE_IDS = {
   keiko: 245741,
   roberto: 246281,
@@ -22,12 +22,10 @@ interface DbCandidate {
   partido: string;
   plan_pdf_url: string | null;
 }
-
 interface DbPlan {
   id: number;
   candidate_id: number;
 }
-
 interface DbDimension {
   plan_id: number;
   dimension: DimKey;
@@ -44,7 +42,6 @@ export default async function ComparadorPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  // Bloquear si cuestionario incompleto (FR-013)
   const { data: profile } = await supabase
     .from("profiles")
     .select("questionnaire_completed_at, facultad")
@@ -54,16 +51,12 @@ export default async function ComparadorPage() {
   if (!p?.facultad) redirect("/profile");
   if (!p.questionnaire_completed_at) redirect("/cuestionario");
 
-  // Asignar orden si falta
   const orderResult = await assignCompareOrderIfMissing();
   const compareOrder = orderResult.ok ? orderResult.value.compareOrder : "keiko_left";
 
-  // Fetch candidatos + plans + dimensiones
   const [{ data: candidatesData }, { data: plansData }, { data: dimensionsData }] =
     await Promise.all([
-      supabase
-        .from("candidates")
-        .select("id, nombre_completo, partido, plan_pdf_url"),
+      supabase.from("candidates").select("id, nombre_completo, partido, plan_pdf_url"),
       supabase.from("plans").select("id, candidate_id"),
       supabase
         .from("plan_dimensions")
@@ -79,13 +72,14 @@ export default async function ComparadorPage() {
 
   if (!keikoCandidate || !robertoCandidate) {
     return (
-      <main className="min-h-screen bg-[var(--background)] py-12 px-4">
+      <main className="min-h-screen bg-[var(--color-background)] py-20 px-6">
         <div className="mx-auto max-w-2xl space-y-4 text-center">
-          <h1 className="font-display text-3xl text-[var(--color-navy-upao)]">
-            Datos del JNE no disponibles
+          <p className="editorial-kicker">Datos no disponibles</p>
+          <h1 className="font-display text-4xl text-[var(--color-navy-upao)]">
+            Sincronizando con el JNE
           </h1>
-          <p className="text-sm text-[var(--color-smoke)]">
-            Estamos sincronizando información del JNE. Inténtalo de nuevo en unos minutos.
+          <p className="text-sm text-[var(--color-graphite)]">
+            Inténtalo de nuevo en unos minutos. El cron de actualización corre cada 24 horas.
           </p>
         </div>
       </main>
@@ -147,23 +141,48 @@ export default async function ComparadorPage() {
         };
 
   return (
-    <main className="min-h-screen bg-[var(--background)] py-10 px-4">
-      <div className="mx-auto max-w-6xl space-y-8">
-        <header className="space-y-2">
-          <p className="text-xs uppercase tracking-widest text-[var(--color-smoke)]">
-            Comparador oficial JNE · Segunda Vuelta 2026
-          </p>
-          <h1 className="font-display text-3xl text-[var(--color-navy-upao)] sm:text-4xl">
-            Planes de gobierno lado a lado
-          </h1>
-          <p className="max-w-2xl text-sm text-[var(--color-smoke)]">
-            Datos extraídos directamente del Jurado Nacional de Elecciones. Texto exacto del
-            JNE, sin parafraseo. Si un campo falta, se muestra explícitamente.
-          </p>
-        </header>
+    <main className="min-h-screen bg-[var(--color-background)]">
+      {/* HEADER */}
+      <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+          <Link href="/" className="flex items-center gap-3">
+            <span className="block h-6 w-1 bg-[var(--color-navy-upao)]" aria-hidden />
+            <p className="font-mono text-[0.7rem] uppercase tracking-[0.2em] text-[var(--color-graphite)]">
+              Comparador · UPAO
+            </p>
+          </Link>
+          <Link
+            href="/preferencia"
+            className="rounded-full bg-[var(--color-navy-upao)] px-5 py-2 text-sm font-medium text-white transition hover:bg-[var(--color-navy-deep)]"
+          >
+            Marcar mi preferencia →
+          </Link>
+        </div>
+      </header>
 
-        <SplitView data={data} />
-      </div>
+      {/* HERO comparador */}
+      <section className="border-b border-[var(--color-border)] py-12">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="space-y-4">
+            <p className="editorial-kicker">Planes oficiales · JNE · Segunda Vuelta 2026</p>
+            <h1 className="max-w-3xl font-display text-[clamp(2.25rem,5vw,4.5rem)] font-medium leading-[1.05] tracking-tight text-[var(--color-navy-upao)]">
+              Lado a lado, sin parafraseo.
+            </h1>
+            <p className="max-w-2xl text-base leading-relaxed text-[var(--color-graphite)]">
+              Texto exacto del Jurado Nacional de Elecciones en cuatro dimensiones oficiales. Si
+              un campo no está declarado, se indica explícitamente. Orden izquierda/derecha
+              asignado al azar al primer acceso, persistente para ti.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* SPLIT VIEW */}
+      <section className="py-10">
+        <div className="mx-auto max-w-7xl px-6">
+          <SplitView data={data} />
+        </div>
+      </section>
     </main>
   );
 }

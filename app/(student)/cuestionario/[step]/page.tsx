@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { MultiStepForm } from "@/components/questionnaire/MultiStepForm";
@@ -69,12 +70,13 @@ export default async function CuestionarioStepPage({
   const questions = ((questionsData ?? []) as DbQuestion[]) as QuestionRecord[];
   if (questions.length === 0) {
     return (
-      <main className="min-h-screen bg-[var(--background)] py-12 px-4">
+      <main className="min-h-screen bg-[var(--color-background)] py-20 px-6">
         <div className="mx-auto max-w-2xl space-y-4 text-center">
-          <h1 className="font-display text-3xl text-[var(--color-navy-upao)]">
+          <p className="editorial-kicker">Sin preguntas activas</p>
+          <h1 className="font-display text-4xl text-[var(--color-navy-upao)]">
             Cuestionario en preparación
           </h1>
-          <p className="text-sm text-[var(--color-smoke)]">
+          <p className="text-sm text-[var(--color-graphite)]">
             El docente aún no ha publicado las preguntas. Vuelve más tarde.
           </p>
         </div>
@@ -94,13 +96,23 @@ export default async function CuestionarioStepPage({
   return (
     <>
       <OfflineIndicator />
-      <main className="min-h-screen bg-[var(--background)] py-12 px-4">
-        <div className="mx-auto max-w-2xl space-y-8">
-          <header className="space-y-1">
-            <p className="text-xs uppercase tracking-widest text-[var(--color-smoke)]">
-              Cuestionario · Voto Informado UPAO
+      <main className="min-h-screen bg-[var(--color-background)]">
+        {/* HEADER fijo con marca + indicador de sección */}
+        <header className="sticky top-0 z-30 border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur">
+          <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
+            <Link href="/" className="flex items-center gap-3">
+              <span className="block h-6 w-1 bg-[var(--color-navy-upao)]" aria-hidden />
+              <p className="font-mono text-[0.7rem] uppercase tracking-[0.2em] text-[var(--color-graphite)]">
+                Cuestionario · UPAO
+              </p>
+            </Link>
+            <p className="font-mono text-[0.7rem] uppercase tracking-[0.2em] text-[var(--color-graphite)]">
+              Voto Informado 2026
             </p>
-          </header>
+          </div>
+        </header>
+
+        <div className="mx-auto max-w-3xl px-6 py-12">
           <MultiStepForm
             questions={questions}
             initialAnswers={initialAnswers}

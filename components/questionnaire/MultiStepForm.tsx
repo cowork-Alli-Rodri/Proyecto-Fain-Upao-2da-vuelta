@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
 
-import { Button } from "@/components/ui/button";
 import { ProgressBar } from "./ProgressBar";
 import {
   QuestionRenderer,
@@ -32,7 +32,9 @@ export function MultiStepForm({
   initialStep: number;
 }) {
   const router = useRouter();
-  const [stepIndex, setStepIndex] = useState(Math.max(0, Math.min(initialStep - 1, questions.length - 1)));
+  const [stepIndex, setStepIndex] = useState(
+    Math.max(0, Math.min(initialStep - 1, questions.length - 1)),
+  );
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>(initialAnswers);
   const [error, setError] = useState<string | null>(null);
   const [saving, startSaving] = useTransition();
@@ -73,7 +75,6 @@ export function MultiStepForm({
 
   function goNext() {
     if (!current || !canAdvance) return;
-    // Flush autosave inmediato antes de avanzar
     if (saveTimer.current) {
       clearTimeout(saveTimer.current);
       saveTimer.current = null;
@@ -110,9 +111,8 @@ export function MultiStepForm({
     startSubmitting(async () => {
       try {
         await submitQuestionnaire();
-        // submitQuestionnaire hace redirect, no debería volver
       } catch (e) {
-        const errResult = e as { error?: { code?: string; questionIds?: string[] } };
+        const errResult = e as { error?: { code?: string } };
         if (errResult?.error?.code === "MissingAnswers") {
           setError("Aún te faltan responder algunas preguntas.");
         } else {
@@ -130,7 +130,9 @@ export function MultiStepForm({
   if (!current) {
     return (
       <div className="space-y-4 text-center">
-        <p>No hay preguntas disponibles. Avisa al docente.</p>
+        <p className="text-[var(--color-muted-foreground)]">
+          No hay preguntas disponibles. Avisa al docente.
+        </p>
       </div>
     );
   }
@@ -139,71 +141,103 @@ export function MultiStepForm({
   const allAnswered = questions.every((q) => isAnswerComplete(q, answers[q.id] ?? null));
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <ProgressBar current={stepIndex + 1} total={total} dimension={dimensionLabel} />
 
-      <article className="space-y-6">
-        <header className="space-y-2">
-          <h2 className="font-display text-2xl leading-tight text-[var(--color-navy-upao)]">
-            {current.enunciado}
-          </h2>
-          {current.fuente ? (
-            <p className="text-xs text-[var(--color-smoke)]">
-              <span className="font-medium">Fuente:</span> {current.fuente}
+      <AnimatePresence mode="wait">
+        <motion.article
+          key={current.id}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+          className="space-y-8"
+        >
+          <header className="space-y-4">
+            <h2 className="font-display text-[clamp(1.75rem,3.5vw,2.75rem)] font-medium leading-[1.15] tracking-tight text-[var(--color-navy-upao)]">
+              {current.enunciado}
+            </h2>
+            {current.fuente ? (
+              <p className="border-l-2 border-[var(--color-border-strong)] pl-4 text-xs leading-relaxed text-[var(--color-muted-foreground)]">
+                <span className="font-mono uppercase tracking-wider">Fuente</span>
+                <span className="mx-2">·</span>
+                {current.fuente}
+              </p>
+            ) : null}
+          </header>
+
+          <QuestionRenderer
+            question={current}
+            answer={currentAnswer}
+            onChange={(next) =>
+              setAnswers((prev) => ({ ...prev, [current.id]: next }))
+            }
+            disabled={saving || submitting}
+          />
+
+          {error ? (
+            <p
+              role="alert"
+              className="rounded-lg border border-[var(--color-coral-pulse)]/40 bg-[var(--color-coral-pulse)]/5 px-4 py-3 text-sm text-[var(--color-coral-pulse)]"
+            >
+              {error}
             </p>
           ) : null}
-        </header>
+        </motion.article>
+      </AnimatePresence>
 
-        <QuestionRenderer
-          question={current}
-          answer={currentAnswer}
-          onChange={(next) =>
-            setAnswers((prev) => ({ ...prev, [current.id]: next }))
-          }
-          disabled={saving || submitting}
-        />
-
-        {error ? (
-          <p role="alert" className="text-sm text-[var(--color-coral-pulse)]">
-            {error}
-          </p>
-        ) : null}
-
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-          <Button
+      {/* Footer navegación sticky */}
+      <div className="sticky bottom-0 -mx-6 border-t border-[var(--color-border)] bg-[var(--color-surface)]/95 px-6 py-4 backdrop-blur">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <button
             type="button"
-            variant="outline"
             onClick={goPrev}
             disabled={stepIndex === 0 || saving || submitting}
+            className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-graphite)] transition hover:text-[var(--color-navy-upao)] disabled:cursor-not-allowed disabled:opacity-30"
           >
-            Anterior
-          </Button>
+            <span aria-hidden>←</span> Anterior
+          </button>
 
-          <div className="flex items-center gap-2 text-xs text-[var(--color-smoke)]">
-            {saving ? <span>Guardando...</span> : <span>Auto-guardado activo</span>}
-          </div>
+          <p
+            aria-live="polite"
+            className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]"
+          >
+            {saving ? "Guardando…" : "Auto-guardado"}
+          </p>
 
           {isLast ? (
-            <Button
+            <button
               type="button"
               onClick={handleSubmit}
               disabled={!allAnswered || saving || submitting}
-              className="bg-[var(--color-navy-upao)] text-white hover:bg-[var(--color-navy-deep)]"
+              className="group inline-flex items-center gap-2 rounded-full bg-[var(--color-navy-upao)] px-6 py-3 text-sm font-medium text-white transition hover:bg-[var(--color-navy-deep)] disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {submitting ? "Enviando..." : "Enviar cuestionario"}
-            </Button>
+              {submitting ? "Enviando…" : "Enviar cuestionario"}
+              <span
+                aria-hidden
+                className="inline-block transition-transform group-hover:translate-x-1"
+              >
+                →
+              </span>
+            </button>
           ) : (
-            <Button
+            <button
               type="button"
               onClick={goNext}
               disabled={!canAdvance || saving || submitting}
-              className="bg-[var(--color-navy-upao)] text-white hover:bg-[var(--color-navy-deep)]"
+              className="group inline-flex items-center gap-2 rounded-full bg-[var(--color-navy-upao)] px-6 py-3 text-sm font-medium text-white transition hover:bg-[var(--color-navy-deep)] disabled:cursor-not-allowed disabled:opacity-40"
             >
               Siguiente
-            </Button>
+              <span
+                aria-hidden
+                className="inline-block transition-transform group-hover:translate-x-1"
+              >
+                →
+              </span>
+            </button>
           )}
         </div>
-      </article>
+      </div>
     </div>
   );
 }

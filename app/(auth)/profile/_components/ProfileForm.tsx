@@ -2,7 +2,6 @@
 
 import { useMemo, useState, useTransition } from "react";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -73,146 +72,198 @@ export function ProfileForm({ defaults }: { defaults: Defaults }) {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-5 rounded-[var(--radius-card)] border border-[color-mix(in_oklch,var(--color-navy-upao)_15%,transparent)] bg-white p-6 shadow-sm"
-    >
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label htmlFor="nombres">Nombres</Label>
-          <Input
-            id="nombres"
-            required
-            minLength={2}
-            maxLength={100}
-            value={nombres}
-            onChange={(e) => setNombres(e.target.value)}
-            disabled={pending}
-          />
+    <form onSubmit={handleSubmit} className="space-y-8">
+      {/* Sección: Identidad */}
+      <Section kicker="01" title="Tu identidad">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <Field id="nombres" label="Nombres">
+            <Input
+              id="nombres"
+              required
+              minLength={2}
+              maxLength={100}
+              value={nombres}
+              onChange={(e) => setNombres(e.target.value)}
+              disabled={pending}
+              placeholder="Ej. María Lucía"
+              className="h-12 bg-[var(--color-surface)]"
+            />
+          </Field>
+          <Field id="apellidos" label="Apellidos">
+            <Input
+              id="apellidos"
+              required
+              minLength={2}
+              maxLength={100}
+              value={apellidos}
+              onChange={(e) => setApellidos(e.target.value)}
+              disabled={pending}
+              placeholder="Ej. Vásquez Torres"
+              className="h-12 bg-[var(--color-surface)]"
+            />
+          </Field>
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="apellidos">Apellidos</Label>
-          <Input
-            id="apellidos"
-            required
-            minLength={2}
-            maxLength={100}
-            value={apellidos}
-            onChange={(e) => setApellidos(e.target.value)}
-            disabled={pending}
-          />
-        </div>
-      </div>
+      </Section>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label htmlFor="facultad">Facultad</Label>
-          <Select
-            value={facultad}
-            onValueChange={(v) => {
-              setFacultad(v);
-              setCarrera("");
-            }}
-            disabled={pending}
-          >
-            <SelectTrigger id="facultad">
-              <SelectValue placeholder="Selecciona tu facultad" />
-            </SelectTrigger>
-            <SelectContent>
-              {FACULTADES.map((f) => (
-                <SelectItem key={f} value={f}>
-                  {f}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      {/* Sección: Académico */}
+      <Section kicker="02" title="Tu programa académico">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <Field id="facultad" label="Facultad">
+            <Select
+              value={facultad}
+              onValueChange={(v) => {
+                setFacultad(v);
+                setCarrera("");
+              }}
+              disabled={pending}
+            >
+              <SelectTrigger id="facultad" className="h-12 bg-[var(--color-surface)]">
+                <SelectValue placeholder="Selecciona tu facultad" />
+              </SelectTrigger>
+              <SelectContent>
+                {FACULTADES.map((f) => (
+                  <SelectItem key={f} value={f}>
+                    {f}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field id="carrera" label="Carrera">
+            <Select value={carrera} onValueChange={setCarrera} disabled={!facultad || pending}>
+              <SelectTrigger id="carrera" className="h-12 bg-[var(--color-surface)]">
+                <SelectValue
+                  placeholder={
+                    facultad ? "Selecciona tu carrera" : "Primero elige facultad"
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {carrerasDisponibles.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="carrera">Carrera</Label>
-          <Select
-            value={carrera}
-            onValueChange={setCarrera}
-            disabled={!facultad || pending}
-          >
-            <SelectTrigger id="carrera">
-              <SelectValue
-                placeholder={
-                  facultad ? "Selecciona tu carrera" : "Primero elige facultad"
-                }
-              />
-            </SelectTrigger>
-            <SelectContent>
-              {carrerasDisponibles.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="space-y-1.5">
-          <Label htmlFor="ciclo">Ciclo</Label>
-          <Select value={ciclo} onValueChange={setCiclo} disabled={pending}>
-            <SelectTrigger id="ciclo">
-              <SelectValue placeholder="Ciclo actual" />
-            </SelectTrigger>
-            <SelectContent>
-              {CICLOS.map((c) => (
-                <SelectItem key={c} value={String(c)}>
-                  Ciclo {c}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="mt-5">
+          <Field id="ciclo" label="Ciclo actual">
+            <Select value={ciclo} onValueChange={setCiclo} disabled={pending}>
+              <SelectTrigger id="ciclo" className="h-12 bg-[var(--color-surface)]">
+                <SelectValue placeholder="Selecciona tu ciclo" />
+              </SelectTrigger>
+              <SelectContent>
+                {CICLOS.map((c) => (
+                  <SelectItem key={c} value={String(c)}>
+                    Ciclo {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="rangoEdad">Rango de edad</Label>
-          <Select value={rangoEdad} onValueChange={setRangoEdad} disabled={pending}>
-            <SelectTrigger id="rangoEdad">
-              <SelectValue placeholder="Rango" />
-            </SelectTrigger>
-            <SelectContent>
-              {RANGOS_EDAD.map((r) => (
-                <SelectItem key={r} value={r}>
-                  {r}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      </Section>
+
+      {/* Sección: Demográfico opcional */}
+      <Section kicker="03" title="Datos demográficos">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <Field id="rangoEdad" label="Rango de edad">
+            <Select value={rangoEdad} onValueChange={setRangoEdad} disabled={pending}>
+              <SelectTrigger id="rangoEdad" className="h-12 bg-[var(--color-surface)]">
+                <SelectValue placeholder="Selecciona tu rango" />
+              </SelectTrigger>
+              <SelectContent>
+                {RANGOS_EDAD.map((r) => (
+                  <SelectItem key={r} value={r}>
+                    {r} años
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field id="genero" label="Género (opcional)">
+            <Select value={genero} onValueChange={setGenero} disabled={pending}>
+              <SelectTrigger id="genero" className="h-12 bg-[var(--color-surface)]">
+                <SelectValue placeholder="Opcional" />
+              </SelectTrigger>
+              <SelectContent>
+                {GENEROS.map((g) => (
+                  <SelectItem key={g.value} value={g.value}>
+                    {g.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="genero">Género (opcional)</Label>
-          <Select value={genero} onValueChange={setGenero} disabled={pending}>
-            <SelectTrigger id="genero">
-              <SelectValue placeholder="Opcional" />
-            </SelectTrigger>
-            <SelectContent>
-              {GENEROS.map((g) => (
-                <SelectItem key={g.value} value={g.value}>
-                  {g.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      </Section>
 
       {error ? (
-        <p role="alert" className="text-sm text-[var(--color-coral-pulse)]">
+        <p
+          role="alert"
+          className="rounded-lg border border-[var(--color-coral-pulse)]/40 bg-[var(--color-coral-pulse)]/5 px-4 py-3 text-sm text-[var(--color-coral-pulse)]"
+        >
           {error}
         </p>
       ) : null}
 
-      <Button
+      <button
         type="submit"
         disabled={pending}
-        className="w-full bg-[var(--color-navy-upao)] text-white hover:bg-[var(--color-navy-deep)]"
+        className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-navy-upao)] px-5 py-4 text-sm font-medium text-white transition hover:bg-[var(--color-navy-deep)] disabled:opacity-50"
       >
         {pending ? "Guardando..." : "Guardar y comenzar cuestionario"}
-      </Button>
+        <span
+          aria-hidden
+          className="inline-block transition-transform group-hover:translate-x-1"
+        >
+          →
+        </span>
+      </button>
     </form>
+  );
+}
+
+function Section({
+  kicker,
+  title,
+  children,
+}: {
+  kicker: string;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="space-y-5 border-l-2 border-[var(--color-border)] pl-6">
+      <header className="flex items-baseline gap-3">
+        <span className="font-mono text-xs tracking-widest text-[var(--color-cyan-deep)]">
+          {kicker}
+        </span>
+        <h2 className="font-display text-xl text-[var(--color-navy-upao)]">{title}</h2>
+      </header>
+      <div>{children}</div>
+    </section>
+  );
+}
+
+function Field({
+  id,
+  label,
+  children,
+}: {
+  id: string;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id} className="text-sm font-medium text-[var(--color-foreground)]">
+        {label}
+      </Label>
+      {children}
+    </div>
   );
 }

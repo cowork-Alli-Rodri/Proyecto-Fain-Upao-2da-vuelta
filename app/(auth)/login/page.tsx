@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { LoginCard } from "./_components/LoginCard";
+import { AuthShell } from "../_components/AuthShell";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -24,23 +25,37 @@ export default async function LoginPage({
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 py-12 bg-[var(--background)]">
-      <div className="w-full max-w-md space-y-8">
-        <header className="space-y-2 text-center">
-          <h1 className="font-display text-4xl text-[var(--color-navy-upao)]">
-            Voto Informado UPAO
-          </h1>
-          <p className="text-sm text-[var(--color-smoke)]">
-            Plataforma académica · Segunda Vuelta Electoral 2026
-          </p>
-        </header>
-        <LoginCard nextPath={params.next ?? "/"} initialError={params.error ?? null} />
-        <p className="text-center text-xs text-[var(--color-smoke)]">
-          Al ingresar aceptas que tus datos serán tratados según la Ley N° 29733.
-          <br />
-          Esta plataforma no emite recomendaciones de voto.
-        </p>
-      </div>
-    </main>
+    <AuthShell
+      kicker="Acceso · Segunda Vuelta 2026"
+      title={
+        "Ingresa con tu cuenta institucional, personal o tu correo."
+      }
+      description="Tu participación es académica y privada. Cumplimos la Ley 29733 — Protección de Datos Personales del Perú."
+      aside={
+        <div className="space-y-4 rounded-2xl border-l-2 border-[var(--color-cyan-deep)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-soft)]">
+          <p className="editorial-kicker">Cómo continúa</p>
+          <ol className="space-y-3 text-sm text-[var(--color-graphite)]">
+            <li className="flex gap-3">
+              <span className="font-mono text-xs text-[var(--color-cyan-deep)]">01</span>
+              <span>Aceptas el consentimiento informado.</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="font-mono text-xs text-[var(--color-cyan-deep)]">02</span>
+              <span>Completas tu perfil (facultad, carrera, ciclo).</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="font-mono text-xs text-[var(--color-cyan-deep)]">03</span>
+              <span>Respondes 12 preguntas con auto-guardado.</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="font-mono text-xs text-[var(--color-cyan-deep)]">04</span>
+              <span>Exploras el comparador del JNE y declaras tu preferencia.</span>
+            </li>
+          </ol>
+        </div>
+      }
+    >
+      <LoginCard nextPath={params.next ?? "/"} initialError={params.error ?? null} />
+    </AuthShell>
   );
 }
