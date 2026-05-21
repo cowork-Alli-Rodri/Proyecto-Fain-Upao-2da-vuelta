@@ -99,20 +99,20 @@ export default async function CuestionarioStepPage({
       <main className="min-h-screen bg-[var(--color-background)]">
         {/* HEADER fijo con marca + indicador de sección */}
         <header className="sticky top-0 z-30 border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur">
-          <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
+          <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
             <Link href="/" className="flex items-center gap-3">
               <span className="block h-6 w-1 bg-[var(--color-navy-upao)]" aria-hidden />
-              <p className="font-mono text-[0.7rem] uppercase tracking-[0.2em] text-[var(--color-graphite)]">
-                Cuestionario · UPAO
+              <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-[var(--color-graphite)] sm:text-[0.7rem] sm:tracking-[0.2em]">
+                <span className="hidden sm:inline">Cuestionario · </span>UPAO
               </p>
             </Link>
-            <p className="font-mono text-[0.7rem] uppercase tracking-[0.2em] text-[var(--color-graphite)]">
-              Voto Informado 2026
+            <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-[var(--color-graphite)] sm:text-[0.7rem] sm:tracking-[0.2em]">
+              <span className="hidden sm:inline">Voto Informado </span>2026
             </p>
           </div>
         </header>
 
-        <div className="mx-auto max-w-3xl px-6 py-12">
+        <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-12">
           <MultiStepForm
             questions={questions}
             initialAnswers={initialAnswers}

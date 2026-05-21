@@ -143,32 +143,33 @@ export default async function ComparadorPage() {
   return (
     <main className="min-h-screen bg-[var(--color-background)]">
       {/* HEADER */}
-      <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+      <header className="sticky top-0 z-40 border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
           <Link href="/" className="flex items-center gap-3">
             <span className="block h-6 w-1 bg-[var(--color-navy-upao)]" aria-hidden />
-            <p className="font-mono text-[0.7rem] uppercase tracking-[0.2em] text-[var(--color-graphite)]">
-              Comparador · UPAO
+            <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-[var(--color-graphite)] sm:text-[0.7rem] sm:tracking-[0.2em]">
+              <span className="hidden sm:inline">Comparador · </span>UPAO
             </p>
           </Link>
           <Link
             href="/preferencia"
-            className="rounded-full bg-[var(--color-navy-upao)] px-5 py-2 text-sm font-medium text-white transition hover:bg-[var(--color-navy-deep)]"
+            className="inline-flex min-h-[40px] items-center rounded-full bg-[var(--color-navy-upao)] px-4 py-2 text-xs font-medium text-white transition hover:bg-[var(--color-navy-deep)] sm:px-5 sm:text-sm"
           >
-            Marcar mi preferencia →
+            <span className="hidden sm:inline">Marcar mi preferencia →</span>
+            <span className="sm:hidden">Mi preferencia →</span>
           </Link>
         </div>
       </header>
 
       {/* HERO comparador */}
-      <section className="border-b border-[var(--color-border)] py-12">
-        <div className="mx-auto max-w-7xl px-6">
+      <section className="border-b border-[var(--color-border)] py-10 sm:py-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="space-y-4">
             <p className="editorial-kicker">Planes oficiales · JNE · Segunda Vuelta 2026</p>
-            <h1 className="max-w-3xl font-display text-[clamp(2.25rem,5vw,4.5rem)] font-medium leading-[1.05] tracking-tight text-[var(--color-navy-upao)]">
+            <h1 className="max-w-3xl font-display text-[clamp(2rem,6vw,4.5rem)] font-medium leading-[1.05] tracking-tight text-[var(--color-navy-upao)]">
               Lado a lado, sin parafraseo.
             </h1>
-            <p className="max-w-2xl text-base leading-relaxed text-[var(--color-graphite)]">
+            <p className="max-w-2xl text-sm leading-relaxed text-[var(--color-graphite)] sm:text-base">
               Texto exacto del Jurado Nacional de Elecciones en cuatro dimensiones oficiales. Si
               un campo no está declarado, se indica explícitamente. Orden izquierda/derecha
               asignado al azar al primer acceso, persistente para ti.
@@ -178,8 +179,8 @@ export default async function ComparadorPage() {
       </section>
 
       {/* SPLIT VIEW */}
-      <section className="py-10">
-        <div className="mx-auto max-w-7xl px-6">
+      <section className="py-8 sm:py-10">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <SplitView data={data} />
         </div>
       </section>
