@@ -1,0 +1,8 @@
+# Las migraciones de Phase 2 (Foundational) vendrán acá:
+# 0001_init_schema.sql
+# 0002_rls_policies.sql
+# 0003_triggers.sql
+# 0004_helper_functions.sql
+# 0005_seed_jne.sql
+# 0006_views_dashboard.sql
+# 0007_seed_allowed_teachers.sql

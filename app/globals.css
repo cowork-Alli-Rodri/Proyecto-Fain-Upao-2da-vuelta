@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+/*
+ * Tokens de diseño UPAO Voto Informado
+ * Fuente: docs/design.md
+ * Paleta OKLCH para colores. Fonts: Migra (display), Geist Sans (UI), Geist Mono (numeric).
+ */
+
+@theme {
+  /* ---------- Color tokens (OKLCH equivalents en sRGB) ---------- */
+  --color-navy-upao: oklch(28.5% 0.118 263);          /* #002855 */
+  --color-navy-deep: oklch(20.8% 0.121 263);          /* #001a3d */
+  --color-cyan-electric: oklch(87.5% 0.156 213);      /* #00E5FF */
+  --color-mango-sun: oklch(82.5% 0.165 80);           /* #FFB400 */
+  --color-coral-pulse: oklch(67.5% 0.225 14);         /* #FF3D6E */
+  --color-mint-success: oklch(74.5% 0.165 168);       /* #00C896 */
+
+  --color-off-white: oklch(98.5% 0.005 280);          /* #FAFAFC */
+  --color-paper: oklch(95.5% 0.008 80);               /* #F2F0EC */
+  --color-charcoal: oklch(20.5% 0.01 260);            /* #1A1D23 */
+  --color-ink: oklch(14% 0.01 260);                   /* #0E1014 */
+  --color-smoke: oklch(48.5% 0.012 260);              /* #5C6470 */
+
+  --color-candidate-keiko: oklch(68% 0.175 50);       /* #F26522 */
+  --color-candidate-roberto: oklch(56% 0.135 145);    /* #2D8B47 */
+
+  /* ---------- Typography ---------- */
+  --font-sans: "Geist Sans", "Helvetica Neue", system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+  --font-display: "Migra", "Cormorant Garamond", "Times New Roman", serif;
+
+  /* ---------- Border radius (mixto, no todo igual) ---------- */
+  --radius-button: 0.5rem;
+  --radius-card: 0.75rem;
+  --radius-pill: 2rem;
+
+  /* ---------- Shadows ---------- */
+  --shadow-fluffy: 0 25px 50px -12px oklch(28.5% 0.118 263 / 0.15);
+  --shadow-neon: 0 0 40px oklch(87.5% 0.156 213 / 0.10);
+
+  /* ---------- Animations ---------- */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ---------- Reset + base ---------- */
+:root {
+  color-scheme: light dark;
+  --background: var(--color-off-white);
+  --foreground: var(--color-ink);
+  --surface: var(--color-paper);
+  --muted: var(--color-smoke);
+  --ring: var(--color-cyan-electric);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: var(--color-charcoal);
+    --foreground: var(--color-off-white);
+    --surface: var(--color-navy-deep);
+    --muted: var(--color-smoke);
+  }
+}
+
+* {
+  box-sizing: border-box;
+  border-color: color-mix(in oklch, currentColor 12%, transparent);
+}
+
+html {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+::selection {
+  background: var(--color-cyan-electric);
+  color: var(--color-navy-deep);
+}
+
+/* Focus visible: ring 3px cyan eléctrico con offset 2px */
+:focus-visible {
+  outline: 3px solid var(--color-cyan-electric);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Honra prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Display serif para H1 grandes (≥40px) */
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+/* Geist Mono con tabular figures para números del dashboard */
+.font-mono {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum" 1;
+}

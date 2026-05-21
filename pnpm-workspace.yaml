@@ -1,0 +1,11 @@
+# Lista de dependencias autorizadas a correr build scripts.
+# pnpm v11 bloquea scripts post-install por defecto (supply-chain protection).
+# Solo paquetes legítimos que necesitan compilar nativos / preparar binarios.
+allowBuilds:
+  '@sentry/cli': true        # source maps upload en CI
+  core-js: true              # polyfills
+  esbuild: true              # Vitest/Vite usan esbuild nativo
+  msw: true                  # mock service worker setup
+  protobufjs: true           # PostHog dependency
+  sharp: true                # next/image
+  unrs-resolver: true        # ESLint resolver

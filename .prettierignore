@@ -1,0 +1,16 @@
+node_modules/
+.next/
+out/
+build/
+dist/
+coverage/
+playwright-report/
+test-results/
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+supabase/.branches/
+supabase/.temp/
+lib/supabase/database.types.ts
+data/jne/raw/
+*.tsbuildinfo
