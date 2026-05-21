@@ -35,9 +35,21 @@ pnpm-debug.log*
 .env*.local
 !.env.example
 
-# Claude Code (puede guardar tokens/credenciales)
+# Claude Code (puede guardar tokens/credenciales y skills personales)
 .claude/settings.local.json
 .claude/cache/
+
+# Skills personales no relacionadas a este proyecto.
+# Solo se mantienen trackeadas las skills `speckit-*` (workflow del proyecto,
+# registradas en .specify/integrations/claude.manifest.json).
+.claude/skills/excalidraw-diagram/
+.claude/skills/frontend-design/
+.claude/skills/nano-banana-images/
+.claude/skills/obsidian-markdown/
+.claude/skills/page-cro/
+.claude/skills/playwright-cli/
+.claude/skills/power-design/
+.claude/skills/ui-ux-pro-max/
 
 # Supabase
 .supabase/
