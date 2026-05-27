@@ -1,6 +1,20 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
+// Server Actions allowedOrigins: incluye canónica + URL específica del deploy
+// (Vercel inyecta VERCEL_BRANCH_URL y VERCEL_URL en build/runtime). Sin esto,
+// abrir cualquier deployment URL (preview-xxx-team.vercel.app) y disparar un
+// Server Action devuelve E394 "An unexpected response was received from the
+// server" porque Next.js no encuentra el host en la whitelist.
+const serverActionAllowedOrigins = [
+  "proyecto-fain-upao-2da-vuelta.vercel.app",
+  "*.vercel.app",
+  process.env.VERCEL_URL,
+  process.env.VERCEL_BRANCH_URL,
+  process.env.VERCEL_PROJECT_PRODUCTION_URL,
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/^https?:\/\//, ""),
+].filter((v): v is string => typeof v === "string" && v.length > 0);
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
@@ -9,15 +23,8 @@ const nextConfig: NextConfig = {
   // redirects usan strings.
   typedRoutes: false,
   experimental: {
-    // Server Actions: permitir invocación desde la URL canónica del proyecto
-    // Y desde las URLs de deployment de Vercel (preview, branch deploys).
-    // Sin esto, abrir un deploy específico (preview-xxx.vercel.app) y disparar
-    // un Server Action devuelve E394 "An unexpected response was received".
     serverActions: {
-      allowedOrigins: [
-        "proyecto-fain-upao-2da-vuelta.vercel.app",
-        "*.vercel.app",
-      ],
+      allowedOrigins: serverActionAllowedOrigins,
     },
   },
   images: {
@@ -54,7 +61,7 @@ const nextConfig: NextConfig = {
       "media-src 'self' https://jne-videos-publicos.s3.us-east-2.amazonaws.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
-      "form-action 'self'",
+      "form-action 'self' https://*.vercel.app",
       "object-src 'none'",
       "upgrade-insecure-requests",
     ].join("; ");
