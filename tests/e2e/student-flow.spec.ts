@@ -1,8 +1,9 @@
 /**
  * E2E — Student happy-path (T046).
  *
- * Cubre acceptance scenarios 1-6 de US1:
- *   login → consent → profile → cuestionario → comparador → preferencia → cierre.
+ * Cubre acceptance scenarios 1-6 de US1 (flujo pivote v2):
+ *   login → consent → profile → cuestionario-pre → preferencia → encuesta-final → cierre.
+ *   /candidatos es página marketing pública (no parte del flow obligatorio).
  *
  * Auto-skip si no detecta Supabase local (NEXT_PUBLIC_SUPABASE_URL apunta a
  * 127.0.0.1/localhost) + SUPABASE_SERVICE_ROLE_KEY presente. En CI con stack
@@ -53,7 +54,7 @@ test.describe("US1 student happy-path (T046)", () => {
     await admin.auth.admin.deleteUser(studentId);
   });
 
-  test("login → consent → profile → cuestionario → comparador → preferencia → cierre", async ({
+  test("login → consent → profile → cuestionario-pre → preferencia → encuesta-final → cierre", async ({
     page,
   }) => {
     // 1) Login con email/password

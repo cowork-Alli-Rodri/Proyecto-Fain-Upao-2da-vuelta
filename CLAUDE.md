@@ -8,14 +8,14 @@ in `specs/001-voto-informado-upao/plan.md`.
 
 ## Qué es
 
-Webapp interactiva para estudiantes de pregrado de la **Universidad Privada Antenor Orrego (UPAO, Trujillo, Perú)**. La plataforma:
+Webapp interactiva para estudiantes de pregrado de la **Universidad Privada Antenor Orrego (UPAO, Trujillo, Perú)**. La plataforma (pivote v2):
 
 1. Permite que cada estudiante se registre vía **OAuth Google + email-password fallback** (Microsoft OAuth fue descartado del piloto — quien tenga correo institucional MS se registra manualmente vía email).
-2. Completa un **cuestionario estructurado** sobre temas de política nacional.
-3. Usa un **módulo comparador** entre las propuestas de los dos finalistas de la **Segunda Vuelta Electoral 2026 (Perú)**: **Keiko Fujimori (Fuerza Popular)** vs **Roberto Sánchez (Juntos por el Perú)**.
-4. Captura y agrega preferencias declaradas para análisis posterior por el docente, vía **subcarpeta `/dashboard`** protegida por rol.
+2. Páginas marketing públicas: **`/inicio`** (hero con video), **`/candidatos`** (split view simétrico Keiko/Roberto con video oficial + plan de gobierno en 4 dimensiones + PDF JNE), **`/no-te-dejes-sorprender`** (verificador de afirmaciones contra Google Fact Check Tools).
+3. Flujo del estudiante: **consent → profile → cuestionario-pre → preferencia → encuesta-final → cierre**. La encuesta final mide cambio de opinión tras la exposición a `/candidatos`.
+4. Captura y agrega preferencias y respuestas pre/post para análisis posterior por el docente, vía **subcarpeta `/dashboard`** protegida por rol (heatmap pre/post + barras de cambio por dimensión + exports CSV/XLSX/Power BI/HTML).
 
-Los datos del comparador provienen de la API REST oficial del JNE (`https://web.jne.gob.pe/serviciovotoinformado`). Detalle en `data/jne/README.md`.
+Los datos del módulo `/candidatos` provienen de la API REST oficial del JNE (`https://votoinformadoia.jne.gob.pe/ServiciosWeb` + scrape complementario de `web.jne.gob.pe`). Detalle en `data/jne/README.md`. Toda la evolución del producto está documentada en `docs/pivote-v2.md`.
 
 ## Stack obligatorio
 
@@ -74,7 +74,7 @@ Esta webapp combina identidad UPAO con paleta moderna documentada en `docs/desig
 
 ## Constraints éticos
 
-- La aplicación **NO emite recomendaciones de voto**. El comparador muestra datos oficiales del JNE sin filtros editoriales.
+- La aplicación **NO emite recomendaciones de voto**. La página `/candidatos` muestra datos oficiales del JNE con tratamiento visual simétrico, sin filtros editoriales.
 - **Consentimiento informado obligatorio** antes del cuestionario.
 - **Anonimización del export** — no se cruzan respuestas individuales con identidad fuera del dashboard del docente.
 - Cumplimiento de la **Ley 29733 (Protección de Datos Personales, Perú)**.

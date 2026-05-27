@@ -16,7 +16,7 @@ pnpm start
 # en otra terminal:
 pnpm exec lighthouse http://localhost:3000/ --view --preset=desktop
 pnpm exec lighthouse http://localhost:3000/como-funciona --view --preset=desktop
-pnpm exec lighthouse http://localhost:3000/comparador --view --preset=desktop
+pnpm exec lighthouse http://localhost:3000/candidatos --view --preset=desktop
 pnpm exec lighthouse http://localhost:3000/dashboard --view --preset=desktop
 ```
 
@@ -49,8 +49,8 @@ Para WCAG 2.2 AA mínimo (constitución V), navegar el flujo completo solo con t
 - [ ] `/login` — Tab cicla en orden visual, Enter envía, Escape no rompe nada.
 - [ ] `/consent` — Tab llega a ambos checkboxes y al CTA. Submit con Enter.
 - [ ] `/profile` — Tab llega a cada Select; Space/Arrows operan los dropdowns.
-- [ ] `/cuestionario/N` — Tab entre opciones; Space marca radio/checkbox; Enter avanza paso.
-- [ ] `/comparador` — Tab cicla entre las pestañas de dimensión; Arrows izq/der entre tabs.
+- [ ] `/cuestionario-pre/N` — Tab entre opciones; Space marca radio/checkbox; Enter avanza paso.
+- [ ] `/candidatos` — Tab cicla entre las pestañas de dimensión; Arrows izq/der entre tabs.
 - [ ] `/preferencia` — Tab llega al slider de confianza; Arrows lo mueven.
 - [ ] `/dashboard` — Tab llega a los filtros; Enter aplica.
 
@@ -62,8 +62,8 @@ Tras navegar todo el flujo: verificar que el foco siempre es visible (anillo nav
 | ----------------- | ----------- | ---- | -------------- | ---- | ------------ | ----------- |
 | `/`               | ≥ 90        | ≥ 90 | ≥ 90           | ≥ 90 | 0            | 0           |
 | `/como-funciona`  | ≥ 90        | ≥ 90 | ≥ 90           | ≥ 90 | 0            | 0           |
-| `/comparador`     | ≥ 90        | ≥ 90 | ≥ 90           | ≥ 90 | 0            | 0           |
-| `/cuestionario/1` | ≥ 90        | ≥ 90 | ≥ 90           | ≥ 90 | 0            | 0           |
+| `/candidatos`     | ≥ 90        | ≥ 90 | ≥ 90           | ≥ 90 | 0            | 0           |
+| `/cuestionario-pre/1` | ≥ 90    | ≥ 90 | ≥ 90           | ≥ 90 | 0            | 0           |
 | `/dashboard`      | ≥ 85*       | ≥ 90 | ≥ 90           | ≥ 90 | 0            | 0           |
 
 \* Dashboard puede bajar de 90 por el peso de visx + recharts. Si pasa, justificarlo en el PR.

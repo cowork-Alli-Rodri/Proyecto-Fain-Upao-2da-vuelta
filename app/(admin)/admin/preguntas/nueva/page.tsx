@@ -42,7 +42,7 @@ export default async function NuevaPreguntaPage() {
     <AdminShell
       kicker="Banco de preguntas · Nueva"
       title="Añadir una pregunta al cuestionario"
-      description="Las preguntas creadas aquí aparecen al estudiante en el orden indicado. Mantén el lenguaje neutral; el comparador no debe sugerir voto."
+      description="Las preguntas creadas aquí aparecen al estudiante en el orden indicado. Mantén el lenguaje neutral; el contenido no debe sugerir voto."
     >
       <QuestionEditor initial={initial} mode="create" />
     </AdminShell>

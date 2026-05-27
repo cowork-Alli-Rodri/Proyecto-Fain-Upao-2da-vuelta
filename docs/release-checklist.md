@@ -35,7 +35,8 @@ pnpm dev
 
 - [ ] `pnpm dev` levanta en < 60s y responde 200 en `http://localhost:3000/`.
 - [ ] Tiempo total desde clone hasta dev server corriendo: **< 15 min**.
-- [ ] El flujo `/login → /consent → /profile → /cuestionario → /comparador → /preferencia → /cierre` funciona end-to-end con un usuario nuevo (email-password).
+- [ ] El flujo `/login → /consent → /profile → /cuestionario-pre → /preferencia → /encuesta-final → /cierre` funciona end-to-end con un usuario nuevo (email-password).
+- [ ] Las páginas marketing públicas `/inicio`, `/candidatos`, `/no-te-dejes-sorprender` cargan sin errores de consola.
 
 ## 3. CI verde en PR (T155)
 

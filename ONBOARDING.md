@@ -9,14 +9,17 @@
 
 Webapp interactiva que el equipo (Rodrigo + Allison) **vende como servicio** a un docente de la **Universidad Privada Antenor Orrego (UPAO, Trujillo, Perú)** para su curso sobre la **Segunda Vuelta Electoral 2026 (Perú)** entre **Keiko Fujimori (Fuerza Popular)** y **Roberto Sánchez (Juntos por el Perú)**.
 
-**Flujo del estudiante**:
+**Flujo del estudiante (pivote v2)**:
 
-1. Login OAuth (Google + Microsoft + email/password fallback).
+1. Login OAuth (Google + email/password fallback — Microsoft descartado del piloto).
 2. Consentimiento informado (Ley 29733) + opt-in explícito.
 3. Datos demográficos: facultad, carrera, ciclo, rango de edad.
-4. Cuestionario de 10-15 preguntas en 4 dimensiones JNE (Social, Económica, Ambiental, Institucional).
-5. Comparador simétrico Keiko vs Roberto con datos oficiales del JNE (orden izquierda/derecha aleatorio persistente por estudiante).
-6. Declaración de preferencia (candidato + confianza 1-10 + motivo).
+4. **Cuestionario pre** (`/cuestionario-pre`): 10-15 preguntas en 4 dimensiones JNE (Social, Económica, Ambiental, Institucional).
+5. Declaración de preferencia (candidato + confianza 1-10 + motivo).
+6. **Encuesta final** (`/encuesta-final`): mide cambio de opinión y utilidad percibida tras la exposición a los planes de gobierno.
+7. `/cierre` agradece y libera.
+
+**Páginas marketing públicas** (no parte del flujo obligatorio): `/inicio` (hero con video), `/candidatos` (split view simétrico Keiko/Roberto con video + plan JNE + PDF), `/no-te-dejes-sorprender` (verificador contra Google Fact Check Tools), `/como-funciona`.
 
 **Flujo del docente**: dashboard `/dashboard` con KPIs, filtros reactivos y exports en 4 formatos (CSV, XLSX, HTML para Canva, ZIP Power BI).
 
@@ -77,8 +80,8 @@ Las tareas T001–T012 ya están hechas. Resultado:
 
 **De la constitución** (`.specify/memory/constitution.md`):
 
-1. **Datos del JNE sin parafraseo** — el comparador muestra texto exacto. Si falta dato → "No declarado por el JNE".
-2. **Neutralidad política absoluta** — orden Keiko/Roberto aleatorio 50/50 persistente; sin etiquetas valorativas; cero gradientes asimétricos.
+1. **Datos del JNE sin parafraseo** — `/candidatos` muestra texto exacto. Si falta dato → "No declarado por el JNE".
+2. **Neutralidad política absoluta** — tratamiento visual simétrico (Keiko izq / Roberto der estable), sin etiquetas valorativas, cero gradientes asimétricos.
 3. **Privacidad** — RLS en TODA tabla con `auth.users`. Cero PII en logs. Sesión 24h. Consentimiento + opt-in obligatorio.
 4. **TDD en flujos críticos** — auth, persistencia de respuestas, dashboard, export. Sin tests no se mergea.
 5. **Server-first** — RSC por defecto, `"use client"` requiere justificación en PR. Lighthouse ≥ 90 en 4 categorías. WCAG 2.2 AA.
@@ -101,8 +104,8 @@ Las tareas T001–T012 ya están hechas. Resultado:
 - **Q1**: rol `teacher` se eleva automáticamente al login si el correo está en `allowed_teachers`. Admin solo vía SQL directo.
 - **Q2**: preferencia es **final por usuario** una vez declarada (inmutable v1). No existe "fase global cerrable". User Story 5 (cambio con auditoría) está fuera de scope.
 - **Q3**: retención 12 meses post-cierre del ciclo + anonimización irreversible. Cron mensual es heartbeat — solo anonimiza cuando se cruza el umbral (una vez por ciclo). Opt-in explícito separado en consentimiento.
-- **Q4**: orden Keiko/Roberto aleatorio 50/50 asignado al primer acceso al comparador, persistente en `profiles.compare_order`.
-- **Q5**: banco inicial 10-15 preguntas en 4 dimensiones JNE. Generación del borrador (`data/questions/draft_v1.md`) está pendiente como entregable post-spec — la genera Claude con fuentes peruanas, se carga como seed, el docente edita después.
+- **Q4**: en v1 había sorteo 50/50 con `profiles.compare_order`. **Removido en pivote v2** (migration `20260525000001_remove_compare_order.sql`) — el split view en `/candidatos` ya no es un paso obligatorio del flow, así que el control de sesgo por orden dejó de aplicar.
+- **Q5**: banco final 10-15 preguntas en 4 dimensiones JNE. Vive en `data/questions/draft_v2.md` y se carga vía `pnpm seed:questions`.
 
 ---
 
@@ -173,7 +176,7 @@ pnpm dev / build / lint / tsc / test / e2e
 pnpm format / format:check
 pnpm db:types       # genera lib/supabase/database.types.ts
 pnpm db:reset       # reset + seed DB local
-pnpm seed:questions # carga draft_v1.md (cuando exista)
+pnpm seed:questions # carga data/questions/draft_v2.md
 pnpm jne:refresh    # refresh manual JNE
 pnpm anonymize:dry-run / anonymize
 ```
@@ -194,7 +197,7 @@ pnpm anonymize:dry-run / anonymize
 
 ## 9. Cosas que aún están pendientes y son tu responsabilidad recordar
 
-- **`data/questions/draft_v1.md`** — generar 12 preguntas en 4 dimensiones con fuentes peruanas (IPE, BCRP, ENAHO, planes JNE, debates legislativos 2024-2026). Es T144 en Phase 7 pero puede adelantarse.
+- **`data/questions/draft_v2.md`** — banco final del pivote v2 (12 preguntas en 4 dimensiones JNE) ya generado y cargado vía `pnpm seed:questions`.
 - **Configurar OAuth providers en Supabase Dashboard** — manual, fuera del código. Documentado en quickstart.
 - **`CRON_SECRET`** — rotar antes de producción.
 - **Promover admin** — `UPDATE profiles SET role = 'admin' WHERE id = 'tu-uuid';` (no hay UI).

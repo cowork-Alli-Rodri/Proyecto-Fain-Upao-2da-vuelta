@@ -1,10 +1,11 @@
 import { z } from "zod";
 
 /**
- * Encuesta post-comparador (B5).
+ * Encuesta final (post-cuestionario).
  *
- * Mide el efecto pedagógico del comparador. La data se usa en el dashboard
- * del docente (agregada, sin identificar al estudiante).
+ * Mide el efecto pedagógico de la exposición a los planes de gobierno
+ * mostrados en /candidatos. La data se usa en el dashboard del docente
+ * (agregada, sin identificar al estudiante).
  */
 export const postSurveySchema = z.object({
   opinionChanged: z.enum(["si_mucho", "si_un_poco", "no"], {

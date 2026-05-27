@@ -19,13 +19,13 @@ Editorial, vivo y serio. Cero "default Tailwind / shadcn vanilla". El estudiante
 | `--charcoal` | `#1A1D23` | Dark mode background principal. |
 | `--ink` | `#0E1014` | Texto principal sobre claro. |
 | `--smoke` | `#5C6470` | Texto secundario. |
-| `--candidate-keiko` | `#F26522` | Naranja Fuerza Popular (solo en comparador). |
-| `--candidate-roberto` | `#2D8B47` | Verde Juntos por el Perú (solo en comparador). |
+| `--candidate-keiko` | `#F26522` | Naranja Fuerza Popular (solo en /candidatos). |
+| `--candidate-roberto` | `#2D8B47` | Verde Juntos por el Perú (solo en /candidatos). |
 
 Reglas:
 - Ratio de contraste WCAG AA mínimo (4.5:1 texto normal, 3:1 texto grande).
 - Modo oscuro real (no auto-invert). Paleta dark ajustada manualmente.
-- Los colores de partido se usan únicamente como tinte sutil (5-10% saturación) en el comparador para mantener neutralidad visual entre candidatos.
+- Los colores de partido se usan únicamente como tinte sutil (5-10% saturación) en `/candidatos` para mantener neutralidad visual entre candidatos.
 
 ## Tipografía
 
@@ -55,7 +55,7 @@ Reglas:
 - **Microinteractions obligatorias**:
   - Ripple al click en botones primarios.
   - Magnetic buttons (cursor atrae el botón ~6px) en CTAs hero.
-  - Tilt 3D suave en cards del comparador (`react-tilt`, max 8deg).
+  - Tilt 3D suave en cards de `/candidatos` (`react-tilt`, max 8deg).
   - Skeleton shimmer con frase rotatoria contextual ("Consultando JNE…", "Cargando propuestas…").
 
 ### Cursor
@@ -74,7 +74,7 @@ Tokens custom en `app/globals.css`. Nunca usar shadcn vanilla. Cada primitive de
 - Sombras: tipo "fluffy" suave en light (`shadow-lg = 0 25px 50px -12px rgba(0,40,85,0.15)`), tipo "neon glow" sutil en dark con cyan eléctrico (`0 0 40px rgba(0,229,255,0.10)`).
 - Focus visible: ring 3px cyan eléctrico con offset 2px.
 
-## Diseño del comparador (núcleo del producto)
+## Diseño de /candidatos (split view del producto)
 
 **Layout**: split horizontal 50/50.
 - **Izquierda**: Keiko Fujimori, tinte naranja sutil (`--candidate-keiko` al 5% en background).
@@ -96,7 +96,7 @@ Tokens custom en `app/globals.css`. Nunca usar shadcn vanilla. Cada primitive de
 
 **Cambio de dimensión**: animación flip 3D suave en ambos lados simultáneamente (mismo `transition` para mantener simetría visual).
 
-**Acción del estudiante**: botón flotante "Marcar mi preferencia" que abre modal con pregunta de preferencia + confianza 1-10 + motivo (opcional).
+**Acción del estudiante**: en v2 `/candidatos` es página marketing pública (sin CTA obligatorio). La declaración de preferencia vive en `/preferencia` dentro del flow del cuestionario.
 
 ## Dashboard del docente
 
@@ -127,7 +127,7 @@ Toggle en header. No es auto-invert. Paleta ajustada:
 
 ## Mobile-first
 
-- Mobile ≤ 640px: stack vertical en comparador (no split horizontal). Swipe horizontal para cambiar de candidato.
+- Mobile ≤ 640px: stack vertical en `/candidatos` (no split horizontal). Swipe horizontal para cambiar de candidato.
 - Touch targets ≥ 48px.
 - Sin hover-only interactions (todo accesible con tap).
 - Cursor custom desactivado en `pointer: coarse`.
@@ -136,7 +136,7 @@ Toggle en header. No es auto-invert. Paleta ajustada:
 
 Toggle en footer ("Modo inmersivo"). Sonidos cortos UI (≤ 80ms) en:
 - Click en CTA primario.
-- Cambio de dimensión en comparador.
+- Cambio de dimensión en `/candidatos`.
 - Submit de cuestionario.
 
 Volume default -24dB. Respeta `prefers-reduced-motion`.
