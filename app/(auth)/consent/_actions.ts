@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { consentSchema } from "@/lib/validation/consent.schema";
 import { createClient } from "@/lib/supabase/server";
 import { verifyTurnstileToken } from "@/lib/auth/turnstile";
+import { checkRateLimit } from "@/lib/rate-limit/upstash";
 import { hashIp } from "@/lib/utils/opaque-id";
 import { logger } from "@/lib/utils/logger";
 import { err, ok, type Result } from "@/lib/errors";
@@ -29,17 +30,21 @@ export async function acceptConsent(input: unknown): Promise<Result<{ redirectTo
     });
   }
 
-  // Turnstile (modo permisivo si no hay secret en env — dev/CI)
-  if (parsed.data.turnstileToken) {
-    const ts = await verifyTurnstileToken(parsed.data.turnstileToken);
-    if (!ts.success) return err({ code: "TurnstileFailed" });
-  }
-
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return err({ code: "Unauthenticated" });
+
+  // Rate limit antes de hacer trabajo costoso (Turnstile + DB write).
+  const rl = await checkRateLimit(`acceptConsent:${user.id}`);
+  if (!rl.success) return err({ code: "RateLimited", retryAfterSec: rl.retryAfterSec });
+
+  // Turnstile (modo permisivo si no hay secret en env — dev/CI)
+  if (parsed.data.turnstileToken) {
+    const ts = await verifyTurnstileToken(parsed.data.turnstileToken);
+    if (!ts.success) return err({ code: "TurnstileFailed" });
+  }
 
   const reqHeaders = await headers();
   const ip = reqHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;

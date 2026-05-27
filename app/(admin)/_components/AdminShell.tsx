@@ -1,6 +1,9 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { BrandBar, BrandMark } from "@/components/brand/BrandMark";
+import { SignOutLink } from "@/components/brand/SignOutLink";
+
 /**
  * Layout consistente para todas las páginas de admin. Mantiene el header
  * editorial UPAO + un kicker + título grande en serif Cormorant, igual que
@@ -24,17 +27,34 @@ export function AdminShell({
       <header className="sticky top-0 z-40 border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-4">
           <Link href="/admin" className="flex items-center gap-3">
-            <span
-              className="block h-6 w-1 bg-[var(--color-navy-upao)] sm:h-7"
-              aria-hidden
-            />
-            <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-[var(--color-graphite)] sm:text-[0.7rem] sm:tracking-[0.2em]">
-              <span className="hidden sm:inline">UPAO · </span>Admin
-            </p>
+            <BrandBar />
+            <BrandMark context="Admin" hideContextOnMobile />
           </Link>
           <nav className="flex items-center gap-4 text-[0.7rem] uppercase tracking-[0.16em] text-[var(--color-graphite)]">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1 hover:text-[var(--color-navy-upao)]"
+              title="Volver al sitio público"
+            >
+              <span aria-hidden>←</span> Inicio
+            </Link>
+            <span className="text-[var(--color-mist)]" aria-hidden>
+              ·
+            </span>
+            <Link
+              href="/dashboard"
+              className="font-semibold text-[var(--color-orange-upao)] hover:underline"
+            >
+              Dashboard
+            </Link>
+            <span className="text-[var(--color-mist)]" aria-hidden>
+              ·
+            </span>
             <Link href="/admin/preguntas" className="hover:text-[var(--color-navy-upao)]">
               Preguntas
+            </Link>
+            <Link href="/admin/fact-checks" className="hover:text-[var(--color-navy-upao)]">
+              Fact checks
             </Link>
             <Link href="/admin/teachers" className="hover:text-[var(--color-navy-upao)]">
               Docentes
@@ -42,6 +62,10 @@ export function AdminShell({
             <Link href="/admin/jne" className="hover:text-[var(--color-navy-upao)]">
               JNE
             </Link>
+            <span className="text-[var(--color-mist)]" aria-hidden>
+              ·
+            </span>
+            <SignOutLink />
           </nav>
         </div>
       </header>

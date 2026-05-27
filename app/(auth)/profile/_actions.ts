@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { profileSchema } from "@/lib/validation/profile.schema";
 import { createClient } from "@/lib/supabase/server";
+import { checkRateLimit } from "@/lib/rate-limit/upstash";
 import { deleteUserData } from "@/lib/retention/delete-request";
 import { logger } from "@/lib/utils/logger";
 import { err, ok, type Result } from "@/lib/errors";
@@ -26,6 +27,9 @@ export async function updateProfile(input: unknown): Promise<Result<{ redirectTo
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return err({ code: "Unauthenticated" });
+
+  const rl = await checkRateLimit(`updateProfile:${user.id}`);
+  if (!rl.success) return err({ code: "RateLimited", retryAfterSec: rl.retryAfterSec });
 
   const { error } = await supabase
     .from("profiles")
@@ -63,6 +67,10 @@ export async function requestDataDeletion(): Promise<Result<{ done: true }>> {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return err({ code: "Unauthenticated" });
+
+  // Rate limit estricto — borrar es destructivo, evitamos retries accidentales.
+  const rl = await checkRateLimit(`deleteUserData:${user.id}`);
+  if (!rl.success) return err({ code: "RateLimited", retryAfterSec: rl.retryAfterSec });
 
   const result = await deleteUserData(user.id);
   if (!result.ok) {

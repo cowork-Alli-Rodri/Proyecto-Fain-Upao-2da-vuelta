@@ -29,7 +29,7 @@ pnpm exec supabase start
 # copiar las keys que imprime a .env.local
 pnpm exec supabase db reset
 pnpm run seed:questions
-pnpm run seed:jne-roberto
+pnpm run jne:refresh
 pnpm dev
 ```
 

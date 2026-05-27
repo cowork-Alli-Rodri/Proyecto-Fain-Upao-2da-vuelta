@@ -2,15 +2,14 @@ import { createClient } from "../supabase/server";
 import { createAdminClient } from "../supabase/admin";
 
 /**
- * Capa de cache + fallback para el comparador (FR-035).
+ * Capa de cache + fallback para el contenido del JNE.
  *
  * Diseño:
- *  - Los reads del comparador van directo a `candidates`, `plans`,
- *    `plan_dimensions` — Postgres es el cache porque `jneRefresh` solo
- *    escribe cuando la respuesta del JNE pasa Zod. Si JNE se cae, la copia
- *    válida previa permanece intacta automáticamente.
- *  - Este módulo provee helpers para exponer el estado del cache: cuándo
- *    fue el último refresh exitoso, hay incidente abierto, etc.
+ *  - La UI consulta `candidates.plan_resumen` directo. Postgres es el cache
+ *    porque `jneRefresh` solo escribe cuando la respuesta del JNE pasa Zod;
+ *    si JNE se cae, la copia válida previa permanece intacta automáticamente.
+ *  - Este módulo expone el estado del cache: cuándo fue el último refresh
+ *    exitoso, cuándo se intentó, si hubo fallas.
  */
 
 export interface JneFreshness {

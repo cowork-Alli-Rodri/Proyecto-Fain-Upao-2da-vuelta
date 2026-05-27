@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { ConsentForm } from "./_components/ConsentForm";
-import { AuthShell } from "../_components/AuthShell";
+import { BrandBar, BrandMark } from "@/components/brand/BrandMark";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -43,53 +44,29 @@ export default async function ConsentPage() {
   const version = (settings as { consent_version?: string } | null)?.consent_version ?? "v1";
 
   return (
-    <AuthShell
-      step={1}
-      total={2}
-      kicker="Consentimiento informado"
-      title={"Antes de empezar, sepamos en qué estás de acuerdo."}
-      description="Lee con calma. Solo necesitamos lo mínimo para que el docente analice tendencias por facultad y carrera. Sin DNI, sin teléfono, sin dirección."
-      aside={
-        <ConsentSummary />
-      }
-    >
-      <ConsentForm consentVersion={version} />
-    </AuthShell>
-  );
-}
+    <main className="min-h-screen bg-[var(--color-background)]">
+      <header className="sticky top-0 z-40 border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur">
+        <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+          <Link href="/" className="flex items-center gap-3">
+            <BrandBar />
+            <BrandMark context="Voto Informado e Instruido" hideContextOnMobile />
+          </Link>
+          <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-[var(--color-graphite)] sm:text-[0.7rem] sm:tracking-[0.2em]">
+            Paso 1 de 2
+          </p>
+        </div>
+      </header>
 
-function ConsentSummary() {
-  return (
-    <div className="space-y-4 rounded-2xl border-l-2 border-[var(--color-cyan-deep)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-soft)]">
-      <p className="editorial-kicker">Resumen rápido</p>
-      <dl className="space-y-4 text-sm">
-        <Item k="Qué se guarda">
-          Nombre, apellido, correo, facultad, carrera, ciclo, rango de edad, género opcional.
-          Tus respuestas y tu preferencia final.
-        </Item>
-        <Item k="Por cuánto tiempo">
-          PII se conserva máximo <strong className="font-mono">12 meses</strong> después del
-          cierre del ciclo. Anonimización irreversible después.
-        </Item>
-        <Item k="Quién la lee">
-          Solo el docente del curso, en forma agregada. Tú nunca ves los datos de otros.
-        </Item>
-        <Item k="Borrado a pedido">
-          En cualquier momento desde tu perfil. Tienes derecho a acceder,
-          rectificar y oponerte al tratamiento de tus datos.
-        </Item>
-      </dl>
-    </div>
-  );
-}
+      <section className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
+        <div className="mb-5 space-y-2">
+          <p className="editorial-kicker">Consentimiento informado</p>
+          <h1 className="font-display text-[clamp(1.5rem,4vw,2.25rem)] font-medium leading-tight text-[var(--color-navy-upao)]">
+            Antes de empezar, sepamos en qué estás de acuerdo.
+          </h1>
+        </div>
 
-function Item({ k, children }: { k: string; children: React.ReactNode }) {
-  return (
-    <div className="grid grid-cols-[120px_1fr] gap-3">
-      <dt className="font-mono text-[0.7rem] uppercase tracking-wider text-[var(--color-muted-foreground)]">
-        {k}
-      </dt>
-      <dd className="leading-relaxed text-[var(--color-foreground)]">{children}</dd>
-    </div>
+        <ConsentForm consentVersion={version} />
+      </section>
+    </main>
   );
 }

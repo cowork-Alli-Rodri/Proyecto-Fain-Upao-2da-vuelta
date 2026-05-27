@@ -52,12 +52,10 @@ Para que el login OAuth funcione (FR-001), Rodrigo debe configurar los providers
    - Crea credenciales OAuth en https://console.cloud.google.com/apis/credentials.
    - Authorized redirect URIs: `https://<tu-proyecto>.supabase.co/auth/v1/callback`.
    - Pega Client ID + Client Secret en Supabase.
-3. Habilita **Microsoft** (Azure AD):
-   - Registra app en https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps.
-   - Redirect URI: `https://<tu-proyecto>.supabase.co/auth/v1/callback`.
-   - Pega Application (client) ID + Client Secret en Supabase.
-4. Habilita **Email** con confirmación deshabilitada para el piloto (para evitar fricción en estudiantes que olvidan confirmar el correo).
-5. **Rotar `CRON_SECRET`** generando uno nuevo con `openssl rand -hex 32` y pegándolo en Vercel → Settings → Environment Variables.
+3. Habilita **Email** con confirmación deshabilitada para el piloto (para evitar fricción en estudiantes que olvidan confirmar el correo). Sirve también para usuarios con correo institucional Microsoft que se registren manualmente.
+4. **Rotar `CRON_SECRET`** generando uno nuevo con `openssl rand -hex 32` y pegándolo en Vercel → Settings → Environment Variables.
+
+> Microsoft/Azure OAuth fue descartado del piloto. Quien tenga correo `@upao.edu.pe` u otro MS lo registra manualmente vía email.
 
 ### Variables mínimas para desarrollo
 
@@ -67,11 +65,9 @@ NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...
 
-# OAuth (usar credenciales de dev del proyecto Supabase)
+# OAuth Google (usar credenciales de dev del proyecto Supabase)
 SUPABASE_AUTH_GOOGLE_CLIENT_ID=...
 SUPABASE_AUTH_GOOGLE_SECRET=...
-SUPABASE_AUTH_MICROSOFT_CLIENT_ID=...
-SUPABASE_AUTH_MICROSOFT_SECRET=...
 
 # Upstash Redis (rate limit)
 UPSTASH_REDIS_REST_URL=...
@@ -91,7 +87,7 @@ NEXT_PUBLIC_POSTHOG_KEY=...
 NEXT_PUBLIC_POSTHOG_HOST=https://app.posthog.com
 ```
 
-> **Aviso manual**: para producción Vercel, Rodrigo debe configurar OAuth providers en el dashboard de Supabase (Google + Microsoft) y rotar `CRON_SECRET`. No quedan en este repo.
+> **Aviso manual**: para producción Vercel, Rodrigo debe configurar OAuth Google en el dashboard de Supabase y rotar `CRON_SECRET`. No quedan en este repo.
 
 ---
 
@@ -108,7 +104,7 @@ Aplicar migraciones y seeds:
 ```powershell
 pnpm exec supabase db reset
 pnpm run seed:questions      # banco inicial de preguntas (12, 4 dimensiones)
-pnpm run seed:jne-roberto    # llena las 4 dimensiones de Roberto desde el JSON
+pnpm run jne:refresh         # llena planes de gobierno de ambos candidatos desde la API JNE
 pnpm run seed:demo           # opcional: 40 estudiantes ficticios para ver dashboard
 ```
 
@@ -131,9 +127,9 @@ Esto corre todas las migraciones en orden, carga seed JNE de Keiko (4 dimensione
 **Aviso**: si reinicias Docker (o tu PC), la DB se pierde. Cuando vuelvas a hacer `supabase start`, la DB arranca vacía. Para restaurar:
 
 ```powershell
-pnpm exec supabase db reset    # reaplica las 7 migraciones
+pnpm exec supabase db reset    # reaplica todas las migraciones
 pnpm run seed:questions        # repuebla preguntas
-pnpm run seed:jne-roberto      # repuebla Roberto
+pnpm run jne:refresh           # repuebla planes JNE de ambos candidatos
 ```
 
 No se necesitan acciones adicionales: el script de migraciones es idempotente y los seeds usan UPDATE/UPSERT.
@@ -270,7 +266,7 @@ pnpm run export -- --format csv --anonymize pseudonym --out ./tmp
 |---|---|---|
 | `supabase start` falla con "port 54321 already in use" | Otra instancia de Supabase corriendo | `supabase stop --backup-only=false` |
 | `pnpm install` instala lento | minimumReleaseAge bloquea | Esperar 1440 min o usar `pnpm install --ignore-publish-config` (NO en producción) |
-| OAuth devuelve "redirect_uri_mismatch" | Callback URL no configurada en provider | Agregar `http://localhost:3000/auth/callback` en Google/Microsoft console |
+| OAuth devuelve "redirect_uri_mismatch" | Callback URL no configurada en provider | Agregar `http://localhost:3000/auth/callback` en Google console |
 | Cron handler responde 401 | `CRON_SECRET` no coincide | Verificar var en Vercel o `.env.local` |
 | JNE devuelve 401 reiterado | `X-Session-Token` vencido y refresh falló | Inspeccionar `jne_refresh_log`, forzar `pnpm run jne:refresh` |
 | Lighthouse < 90 en CI | Componentes client-side bloqueando TTI | Convertir a RSC o `dynamic import` |

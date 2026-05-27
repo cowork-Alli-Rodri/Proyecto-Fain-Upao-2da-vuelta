@@ -7,22 +7,27 @@ import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Ingresar",
-  description: "Inicia sesión para acceder a Voto Informado UPAO.",
+  description: "Inicia sesión para acceder a Voto Informado FAIN-UPAO.",
 };
 
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; error?: string }>;
+  searchParams: Promise<{ next?: string; error?: string; reason?: string }>;
 }) {
   const params = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (user) {
+  if (user && params.reason !== "session_expired") {
     redirect("/cuestionario");
   }
+
+  const expiredNotice =
+    params.reason === "session_expired"
+      ? "Tu sesión expiró por inactividad (8 horas máximo por seguridad). Ingresa nuevamente para continuar."
+      : null;
 
   return (
     <AuthShell
@@ -30,7 +35,7 @@ export default async function LoginPage({
       title={
         "Ingresa con tu cuenta institucional, personal o tu correo."
       }
-      description="Tu participación es académica y privada. Tratamos tus datos personales con consentimiento explícito y los anonimizamos al cierre del ciclo."
+      description="Tu participación es académica y privada. Solo usamos tus datos personales con tu permiso explícito y los borramos al cierre del ciclo del curso."
       aside={
         <div className="space-y-4 rounded-2xl border-l-2 border-[var(--color-cyan-deep)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-soft)]">
           <p className="editorial-kicker">Cómo continúa</p>
@@ -49,13 +54,17 @@ export default async function LoginPage({
             </li>
             <li className="flex gap-3">
               <span className="font-mono text-xs text-[var(--color-cyan-deep)]">04</span>
-              <span>Exploras el comparador del JNE y declaras tu preferencia.</span>
+              <span>Respondes una breve encuesta final y declaras tu preferencia.</span>
             </li>
           </ol>
         </div>
       }
     >
-      <LoginCard nextPath={params.next ?? "/"} initialError={params.error ?? null} />
+      <LoginCard
+        nextPath={params.next ?? "/"}
+        initialError={params.error ?? null}
+        initialNotice={expiredNotice}
+      />
     </AuthShell>
   );
 }

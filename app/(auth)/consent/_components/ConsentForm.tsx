@@ -37,19 +37,27 @@ export function ConsentForm({ consentVersion }: { consentVersion: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      {/* Texto legal scrollable */}
-      <article className="max-h-[420px] overflow-y-auto rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 text-sm leading-relaxed text-[var(--color-foreground)] shadow-[var(--shadow-soft)]">
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Texto legal scrollable.
+          `data-lenis-prevent` evita que el smooth scroll de Lenis intercepte
+          la rueda del mouse y el touch dentro de este contenedor — así el
+          scroll local funciona en desktop y mobile. */}
+      <article
+        data-lenis-prevent
+        className="max-h-[44vh] min-h-[260px] overflow-y-auto overscroll-contain rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 text-sm leading-relaxed text-[var(--color-foreground)] shadow-[var(--shadow-soft)] sm:p-6"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
         <h2 className="font-display text-xl text-[var(--color-navy-upao)]">
           Texto legal del consentimiento
         </h2>
         <div className="mt-4 space-y-4">
           <p>
-            <strong>Voto Informado UPAO</strong> es una plataforma académica del docente del
-            curso para estudiantes de pregrado de la Universidad Privada Antenor Orrego (Trujillo,
-            Perú). Su objetivo es analizar las preferencias declaradas por los estudiantes tras
-            explorar los planes oficiales del JNE de los candidatos de la Segunda Vuelta
-            Electoral 2026.
+            <strong>Voto Informado e Instruido · FAIN-UPAO</strong> es una plataforma
+            académica del curso para estudiantes de pregrado de la Universidad Privada Antenor
+            Orrego (Trujillo, Perú). Su objetivo es promover la toma de decisiones objetiva y
+            crítica mediante la identificación de la información falsa o engañosa que se divulga
+            en otros canales, a partir del análisis de los planes oficiales del JNE de los
+            candidatos de la Segunda Vuelta Electoral 2026.
           </p>
 
           <div className="space-y-1">
@@ -57,51 +65,52 @@ export function ConsentForm({ consentVersion }: { consentVersion: string }) {
             <ul className="list-disc space-y-1 pl-5 text-[var(--color-graphite)]">
               <li>Nombres y apellidos, correo, facultad, carrera, ciclo, rango de edad y género (opcional).</li>
               <li>Tus respuestas al cuestionario.</li>
-              <li>La preferencia final que declares (candidato, nivel de confianza, motivo).</li>
+              <li>La decisión final que declares (candidato, nivel de confianza, motivo).</li>
               <li>Eventos anónimos de uso (sin identificarte).</li>
             </ul>
           </div>
 
           <div className="space-y-1">
-            <p className="font-medium text-[var(--color-navy-upao)]">Plazo de conservación</p>
+            <p className="font-medium text-[var(--color-navy-upao)]">Cuánto tiempo guardamos tus datos</p>
             <p>
-              Tus datos personales se conservarán únicamente por un máximo de{" "}
-              <strong className="font-mono">12 meses</strong> después del cierre del ciclo
-              académico. Pasado ese plazo serán <strong>anonimizados de forma irreversible</strong>:
-              tus respuestas se mantendrán solo en forma agregada y sin posibilidad de vincularse
-              a tu identidad.
+              Tu nombre, correo y demás datos personales se guardan hasta{" "}
+              <strong className="font-mono">12 meses</strong> después de que termine el
+              ciclo del curso. Pasado ese tiempo, <strong>se borran y no se pueden
+              recuperar</strong>: tus respuestas quedan solo como cifras agrupadas, sin forma
+              de saber que eran tuyas.
             </p>
           </div>
 
           <div className="space-y-1">
             <p className="font-medium text-[var(--color-navy-upao)]">Tus derechos</p>
             <p>
-              Puedes solicitar el borrado completo de tus datos en cualquier
-              momento desde tu perfil. Tienes derecho a acceder, rectificar y
-              oponerte al tratamiento de tus datos personales.
+              Puedes pedir que borremos por completo tus datos en cualquier
+              momento desde tu perfil. También puedes verlos, corregirlos o
+              pedirnos que dejemos de usarlos.
             </p>
           </div>
 
           <div className="space-y-1">
-            <p className="font-medium text-[var(--color-navy-upao)]">Neutralidad</p>
+            <p className="font-medium text-[var(--color-navy-upao)]">No te decimos por quién votar</p>
             <p>
-              Esta plataforma <strong>no emite recomendaciones de voto</strong>. El comparador
-              muestra los datos oficiales del JNE sin filtros editoriales.
+              Esta plataforma <strong>no recomienda candidatos</strong>. Te mostramos lo
+              que cada uno publicó oficialmente en el JNE, sin editarlo.
             </p>
           </div>
         </div>
       </article>
 
       {/* Dos checkboxes obligatorios */}
-      <div className="space-y-4">
+      <div className="space-y-2.5">
         <CheckBlock
           checked={terms}
           onCheckedChange={setTerms}
           disabled={pending}
           id="terms"
         >
-          He leído y acepto los términos del estudio, incluyendo el plazo de conservación de
-          12 meses y la anonimización posterior.
+          Entiendo cómo se usan mis datos: se guardan hasta 12 meses después
+          del cierre del curso y luego se borran, dejando solo cifras agrupadas
+          sin que se sepa que eran mías.
         </CheckBlock>
 
         <CheckBlock
@@ -110,9 +119,9 @@ export function ConsentForm({ consentVersion }: { consentVersion: string }) {
           disabled={pending}
           id="dataUse"
         >
-          <strong>Autorizo el uso de mis datos personales</strong> para la investigación
-          académica del docente. Sé que puedo revocar esta autorización en cualquier momento
-          desde mi perfil.
+          <strong>Doy permiso para que mis datos personales se usen</strong> en el
+          trabajo académico del docente. Sé que puedo retirar este permiso en cualquier
+          momento desde mi perfil.
         </CheckBlock>
       </div>
 
@@ -125,11 +134,11 @@ export function ConsentForm({ consentVersion }: { consentVersion: string }) {
         </p>
       ) : null}
 
-      <div className="space-y-3">
+      <div className="space-y-2">
         <button
           type="submit"
           disabled={pending || !terms || !dataUse}
-          className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-navy-upao)] px-5 py-4 text-sm font-medium text-white transition hover:bg-[var(--color-navy-deep)] disabled:cursor-not-allowed disabled:opacity-40"
+          className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-navy-upao)] px-5 py-3 text-sm font-medium text-white transition hover:bg-[var(--color-navy-deep)] disabled:cursor-not-allowed disabled:opacity-40"
         >
           {pending ? "Guardando..." : "Acepto y continuar"}
           <span
@@ -163,7 +172,7 @@ function CheckBlock({
   return (
     <label
       htmlFor={id}
-      className={`flex cursor-pointer items-start gap-4 rounded-2xl border bg-[var(--color-surface)] p-5 transition ${
+      className={`flex cursor-pointer items-start gap-3 rounded-xl border bg-[var(--color-surface)] px-4 py-3 transition ${
         checked
           ? "border-[var(--color-navy-upao)] shadow-[var(--shadow-soft)]"
           : "border-[var(--color-border)] hover:border-[var(--color-border-strong)]"

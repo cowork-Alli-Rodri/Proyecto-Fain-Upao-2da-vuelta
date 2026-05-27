@@ -2,10 +2,22 @@
 # pnpm v11 bloquea scripts post-install por defecto (supply-chain protection).
 # Solo paquetes legítimos que necesitan compilar nativos / preparar binarios.
 allowBuilds:
-  '@sentry/cli': true        # source maps upload en CI
-  core-js: true              # polyfills
-  esbuild: true              # Vitest/Vite usan esbuild nativo
-  msw: true                  # mock service worker setup
-  protobufjs: true           # PostHog dependency
-  sharp: true                # next/image
-  unrs-resolver: true        # ESLint resolver
+  '@sentry/cli': true # source maps upload en CI
+  core-js: true # polyfills
+  esbuild: true # Vitest/Vite usan esbuild nativo
+  ffmpeg-static: true
+  msw: true # mock service worker setup
+  protobufjs: true # PostHog dependency
+  sharp: true # next/image
+  unrs-resolver: true # ESLint resolver
+
+# Overrides para forzar versiones parcheadas de transitorias con CVE.
+# pnpm 11+ migró desde `pnpm.overrides` en package.json a este archivo.
+overrides:
+  # GHSA-qx2v-qp2m-jg93 — PostCSS XSS via Unescaped </style>.
+  # Next 16.2.6 trae 8.4.31; forzamos 8.5.15 (mismo major, API compatible).
+  postcss: 8.5.15
+  # GHSA-w5hq-g745-h8pq — uuid v3/v5/v6 buffer bounds check.
+  # exceljs 4.4.0 trae 8.3.2; forzamos 11.1.1. uuid v4 (lo que usa exceljs)
+  # no tiene el bug pero subimos a 11 para borrar el reporte.
+  uuid: 11.1.1

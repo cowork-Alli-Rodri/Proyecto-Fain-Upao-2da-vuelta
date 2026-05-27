@@ -25,15 +25,16 @@ const cormorant = Cormorant_Garamond({
 
 export const metadata: Metadata = {
   title: {
-    default: "Voto Informado UPAO",
-    template: "%s · Voto Informado UPAO",
+    default: "Voto Informado e Instruido · FAIN-UPAO",
+    template: "%s · Voto Informado e Instruido · FAIN-UPAO",
   },
   description:
-    "Plataforma académica para estudiantes UPAO — Segunda Vuelta Electoral 2026. Comparador oficial JNE de los planes de gobierno.",
+    "Plataforma académica de la FAIN-UPAO para la Segunda Vuelta Electoral 2026. Toma decisiones objetivas y críticas: analiza los planes oficiales del JNE e identifica la información falsa que circula en otros canales.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   openGraph: {
-    title: "Voto Informado UPAO",
-    description: "Compara propuestas oficiales del JNE. Sin sesgos, sin recomendaciones.",
+    title: "Voto Informado e Instruido · FAIN-UPAO",
+    description:
+      "Analiza los planes oficiales del JNE y aprende a detectar información falsa antes de decidir.",
     locale: "es_PE",
     type: "website",
   },

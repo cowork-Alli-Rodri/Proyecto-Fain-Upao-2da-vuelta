@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { BrandBar, BrandMark } from "@/components/brand/BrandMark";
+import { SignOutLink } from "@/components/brand/SignOutLink";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
 
 /**
@@ -30,16 +32,24 @@ export function AuthShell({
       <header className="sticky top-0 z-40 border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-4">
           <Link href="/" className="flex items-center gap-3">
-            <span className="block h-6 w-1 bg-[var(--color-navy-upao)] sm:h-7" aria-hidden />
-            <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-[var(--color-graphite)] sm:text-[0.7rem] sm:tracking-[0.2em]">
-              <span className="hidden sm:inline">UPAO · </span>Voto Informado
-            </p>
+            <BrandBar />
+            <BrandMark context="Voto Informado e Instruido" hideContextOnMobile />
           </Link>
-          {step && total ? (
-            <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-[var(--color-graphite)] sm:text-[0.7rem] sm:tracking-[0.2em]">
-              Paso {step} de {total}
-            </p>
-          ) : null}
+          <div className="flex items-center gap-5">
+            <Link
+              href="/"
+              className="hidden font-mono text-[0.65rem] uppercase tracking-[0.18em] text-[var(--color-graphite)] transition hover:text-[var(--color-navy-upao)] sm:inline-flex sm:text-[0.7rem] sm:tracking-[0.2em]"
+              title="Volver al sitio público"
+            >
+              ← Inicio
+            </Link>
+            {step && total ? (
+              <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-[var(--color-graphite)] sm:text-[0.7rem] sm:tracking-[0.2em]">
+                Paso {step} de {total}
+              </p>
+            ) : null}
+            <SignOutLink />
+          </div>
         </div>
       </header>
 
@@ -53,7 +63,7 @@ export function AuthShell({
             </div>
           </ScrollReveal>
           <ScrollReveal direction="up" delay={0.05}>
-            <h1 className="font-display text-[clamp(2rem,5vw,3.5rem)] font-medium leading-[1.05] text-[var(--color-navy-upao)]">
+            <h1 className="font-display text-[clamp(1.875rem,4.5vw,3rem)] font-medium leading-[1.05] text-balance text-[var(--color-navy-upao)]">
               {title}
             </h1>
           </ScrollReveal>

@@ -9,43 +9,49 @@ type AnonymizeMode = "none" | "pseudonym" | "full";
 const FORMATS = [
   {
     id: "csv",
-    title: "CSV (preferencias)",
-    desc: "Archivo plano, abre directo en Excel/Sheets. Incluye demografía + preferencia + motivo.",
+    title: "Preferencias (Excel/Sheets)",
+    desc: "Una hoja con quién eligió a quién: nombre o código del estudiante, candidato, nivel de confianza, motivo y demografía. Se abre directo en Excel o Google Sheets.",
     href: "/api/export/csv?view=preferencias",
   },
   {
     id: "csv-respuestas",
-    title: "CSV (respuestas)",
-    desc: "Una fila por respuesta del cuestionario. Útil para análisis detallado por pregunta.",
+    title: "Respuestas del cuestionario",
+    desc: "Una hoja con cada respuesta a cada pregunta. Ideal si quieres analizar tendencias por pregunta o dimensión.",
     href: "/api/export/csv?view=respuestas",
   },
   {
     id: "xlsx",
-    title: "XLSX (Excel)",
-    desc: "Tres hojas: Respuestas, Preferencias y KPIs. Header con estilo, freeze pane.",
+    title: "Excel completo (3 hojas)",
+    desc: "Un archivo .xlsx con tres pestañas: respuestas, preferencias y resumen general. Header con estilo y primera fila fijada.",
     href: "/api/export/xlsx",
   },
   {
     id: "html",
-    title: "HTML para Canva",
-    desc: "HTML autocontenido con bloques editables. Importa en Canva con el código HTML.",
+    title: "Para Canva",
+    desc: "Archivo HTML con los datos listos para pegar en Canva. Útil para armar presentaciones rápido.",
     href: "/api/export/html",
   },
   {
     id: "powerbi-csv",
-    title: "Power BI · CSV plano",
-    desc: "Dataset tabular plano para cargar en Power BI Desktop sin transformaciones.",
+    title: "Power BI · Datos",
+    desc: "Archivo plano para abrir directo en Power BI Desktop sin pasos extra de transformación.",
     href: "/api/export/powerbi?kind=csv",
   },
   {
     id: "powerbi-pbids",
-    title: "Power BI · Manifest .pbids",
-    desc: "Archivo .pbids que apunta al CSV de Power BI. Ábrelo con Power BI Desktop.",
+    title: "Power BI · Conexión",
+    desc: "Archivo de conexión que abre Power BI Desktop apuntando al archivo de datos anterior.",
     href: "/api/export/powerbi?kind=pbids",
   },
 ] as const;
 
-export function ExportPanel({ filters }: { filters: DashboardFilters }) {
+export function ExportPanel({
+  filters,
+  isAdmin = false,
+}: {
+  filters: DashboardFilters;
+  isAdmin?: boolean;
+}) {
   const [anonymize, setAnonymize] = useState<AnonymizeMode>("pseudonym");
 
   function buildUrl(href: string) {
@@ -59,46 +65,51 @@ export function ExportPanel({ filters }: { filters: DashboardFilters }) {
   return (
     <section className="py-10 sm:py-12">
       <div className="mx-auto max-w-7xl space-y-8 px-4 sm:px-6">
-        {/* Anonimización */}
+        {/* Privacidad del export */}
         <article className="space-y-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-soft)]">
           <header className="space-y-1">
-            <p className="editorial-kicker">Anonimización</p>
+            <p className="editorial-kicker">Privacidad</p>
             <h2 className="font-display text-xl font-medium text-[var(--color-navy-upao)] sm:text-2xl">
-              ¿Cuánta identidad incluir en el export?
+              ¿Qué información personal de los estudiantes quieres en el archivo?
             </h2>
           </header>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            {(["pseudonym", "full"] as AnonymizeMode[]).map((mode) => (
-              <AnonOption
-                key={mode}
-                id={mode}
-                selected={anonymize === mode}
-                onSelect={() => setAnonymize(mode)}
-                title={mode === "pseudonym" ? "Pseudónimo (default)" : "Anónimo total"}
-                desc={
-                  mode === "pseudonym"
-                    ? "Reemplaza nombre/email por un identificador estable. Permite joins entre exports."
-                    : "Sin nombre, sin email, sin pseudo estable. Solo agregados."
-                }
-              />
-            ))}
+          <div
+            className={`grid grid-cols-1 gap-3 ${
+              isAdmin ? "sm:grid-cols-3" : "sm:grid-cols-2"
+            }`}
+          >
             <AnonOption
-              id="none"
-              selected={anonymize === "none"}
-              onSelect={() => setAnonymize("none")}
-              title="Sin anonimizar (admin)"
-              desc="Solo disponible para admin. Incluye nombre y correo."
-              disabledHint="Requiere rol admin"
+              id="01"
+              selected={anonymize === "pseudonym"}
+              onSelect={() => setAnonymize("pseudonym")}
+              title="Identificador anónimo (recomendado)"
+              desc="A cada estudiante se le asigna un código. No se ven nombres ni correos, pero puedes cruzar archivos porque el código es el mismo entre descargas."
             />
+            <AnonOption
+              id="02"
+              selected={anonymize === "full"}
+              onSelect={() => setAnonymize("full")}
+              title="Solo conteos"
+              desc="Únicamente cifras agregadas y porcentajes. No es posible identificar a nadie ni vincular archivos."
+            />
+            {isAdmin ? (
+              <AnonOption
+                id="03"
+                selected={anonymize === "none"}
+                onSelect={() => setAnonymize("none")}
+                title="Con nombre y correo"
+                desc="Incluye nombre completo, correo y toda la demografía. Útil si necesitas contactar a estudiantes específicos."
+              />
+            ) : null}
           </div>
         </article>
 
         {/* Formatos */}
         <article className="space-y-4">
           <header className="space-y-1">
-            <p className="editorial-kicker">Formatos disponibles</p>
+            <p className="editorial-kicker">Formato del archivo</p>
             <h2 className="font-display text-xl font-medium text-[var(--color-navy-upao)] sm:text-2xl">
-              Elige cómo descargar
+              ¿Cómo quieres descargar los datos?
             </h2>
           </header>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -127,8 +138,8 @@ export function ExportPanel({ filters }: { filters: DashboardFilters }) {
         </article>
 
         <p className="text-xs text-[var(--color-muted-foreground)]">
-          Los exports respetan los filtros activos del dashboard (facultad, carrera, ciclo,
-          fechas).
+          Cada descarga incluye solo los estudiantes que cumplen los filtros que
+          tengas activos en el dashboard (facultad, carrera, ciclo, rango de fechas).
         </p>
       </div>
     </section>
@@ -141,14 +152,12 @@ function AnonOption({
   onSelect,
   title,
   desc,
-  disabledHint,
 }: {
   id: string;
   selected: boolean;
   onSelect: () => void;
   title: string;
   desc: string;
-  disabledHint?: string;
 }) {
   return (
     <button
@@ -171,9 +180,6 @@ function AnonOption({
       </p>
       <p className="text-sm font-medium text-[var(--color-foreground)]">{title}</p>
       <p className="text-xs leading-relaxed text-[var(--color-muted-foreground)]">{desc}</p>
-      {disabledHint ? (
-        <p className="font-mono text-[0.65rem] text-[var(--color-coral-pulse)]">{disabledHint}</p>
-      ) : null}
     </button>
   );
 }

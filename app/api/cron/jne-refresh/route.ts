@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { compareSecrets } from "@/lib/auth/secret-compare";
 import { jneRefresh } from "@/lib/jne/refresh";
 import { logger } from "@/lib/utils/logger";
 
@@ -20,7 +21,7 @@ export async function GET(request: Request) {
   const auth = request.headers.get("authorization") ?? "";
   const expected = `Bearer ${process.env.CRON_SECRET ?? ""}`;
 
-  if (!process.env.CRON_SECRET || auth !== expected) {
+  if (!process.env.CRON_SECRET || !compareSecrets(auth, expected)) {
     logger.warn("jne-refresh cron auth failed", { correlationId });
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

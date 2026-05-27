@@ -61,6 +61,10 @@ CREATE OR REPLACE FUNCTION public.hash_opaque_user_id(user_uuid uuid)
 RETURNS text
 LANGUAGE sql
 IMMUTABLE
+-- Supabase Cloud instala `pgcrypto` en el schema `extensions`, no en `public`.
+-- Agregamos extensions al search_path para que `digest()` resuelva correctamente
+-- tanto en local (Docker, donde vive en public) como en cloud.
+SET search_path = public, extensions, pg_catalog
 AS $$
   SELECT 'u_' || encode(digest(user_uuid::text || ':voto-informado-upao', 'sha256'), 'hex');
 $$;

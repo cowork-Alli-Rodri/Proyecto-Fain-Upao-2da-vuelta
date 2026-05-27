@@ -23,6 +23,30 @@ const nextConfig: NextConfig = {
     ],
   },
   async headers() {
+    // CSP — defensa en profundidad contra XSS. Inline styles/scripts permitidos
+    // porque Next.js + Tailwind 4 los necesita; el resto restringido a self +
+    // dominios concretos (Supabase Storage, JNE imágenes, PostHog).
+    const cspDirectives = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.posthog.com https://challenges.cloudflare.com",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https://*.supabase.co https://*.jne.gob.pe https://mpesije.jne.gob.pe",
+      "font-src 'self' data:",
+      // connect-src incluye Google Fact Check Tools (verificador) + ambos
+      // subdominios del JNE (web.jne.gob.pe legacy + votoinformadoia.jne.gob.pe nuevo).
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.posthog.com https://*.sentry.io https://*.jne.gob.pe https://factchecktools.googleapis.com",
+      // frame-src incluye votoinformadoia.jne.gob.pe para embed de PDFs de
+      // planes de gobierno (modal "Plan de Gobierno" en /candidatos).
+      "frame-src 'self' https://challenges.cloudflare.com https://*.jne.gob.pe",
+      // media-src para videos de presentación de candidatos (S3 público del JNE).
+      "media-src 'self' https://jne-videos-publicos.s3.us-east-2.amazonaws.com",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "object-src 'none'",
+      "upgrade-insecure-requests",
+    ].join("; ");
+
     return [
       {
         source: "/(.*)",
@@ -31,6 +55,16 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+          // HSTS — forzar HTTPS por 1 año + subdominios + preload-ready.
+          // Solo aplica en HTTPS real (Vercel inyecta cuando ya hay TLS).
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000; includeSubDomains; preload",
+          },
+          // CSP — defensa contra XSS. Reportar-solo en dev/preview podría
+          // refinar la política antes de enforcement; por ahora enforce directo
+          // porque el inline necesario está cubierto.
+          { key: "Content-Security-Policy", value: cspDirectives },
         ],
       },
     ];
@@ -47,7 +81,6 @@ export default withSentryConfig(nextConfig, {
   silent: !process.env.CI,
   widenClientFileUpload: true,
   sourcemaps: { disable: false },
-  disableLogger: true,
   // Release name: si Vercel inyecta VERCEL_GIT_COMMIT_SHA lo usamos; sino se
   // autodetecta del git local.
   release: {

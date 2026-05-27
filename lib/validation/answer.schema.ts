@@ -59,6 +59,10 @@ export type AnswerType = keyof typeof answerValueByType;
 export const saveAnswerSchema = z.object({
   questionId: z.string().uuid("ID de pregunta inválido."),
   valor: z.unknown(), // valida dinámicamente según questions.tipo en el server
+  // v2: bloque del flujo en el que estamos respondiendo.
+  // Default 'pre' para compatibilidad con clientes que aún no envían el campo
+  // (legacy /cuestionario page sin el split pre/post).
+  momento: z.enum(["pre", "post"]).default("pre"),
 });
 
 export type SaveAnswerInput = z.infer<typeof saveAnswerSchema>;

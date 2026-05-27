@@ -35,8 +35,8 @@ export default async function ProfilePage() {
       step={2}
       total={2}
       kicker="Perfil académico"
-      title="Cuéntanos lo justo. Nada de DNI ni teléfono."
-      description="Estos datos permiten al docente analizar las respuestas agregadas por facultad y carrera. Tu información personal queda protegida por RLS y se anonimiza después del ciclo."
+      title="Cuéntanos sobre ti."
+      description="Información mínima para contextualizar tus respuestas dentro del análisis del curso."
     >
       <ProfileForm
         defaults={

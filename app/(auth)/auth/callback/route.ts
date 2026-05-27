@@ -4,25 +4,31 @@ import { createClient } from "@/lib/supabase/server";
 import { resolveStudentResumePath } from "@/lib/auth/session";
 
 /**
- * OAuth callback (FR-001).
+ * Auth callback unificado.
  *
- * Recibe el `code` de PKCE flow, lo intercambia por sesión, y redirige
- * al estudiante al paso del flujo donde quedó (FR-010, edge case sesión 24h).
+ * Maneja dos casos:
+ *   1. OAuth (Google/Microsoft) → llega con `?code=...` PKCE → intercambia
+ *      el código por sesión, valida consentimiento y resume.
+ *   2. Email + password → ya tiene cookies de sesión (las puso
+ *      `signInWithPassword` en el cliente). Sin `code`. Saltamos el exchange
+ *      y vamos directo a validar consentimiento + resume.
+ *
+ * Si llega un visitante sin code y sin sesión, vuelve a /login.
  */
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/";
 
-  if (!code) {
-    return NextResponse.redirect(`${origin}/login?error=missing_code`);
-  }
-
   const supabase = await createClient();
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
 
-  if (error) {
-    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`);
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      return NextResponse.redirect(
+        `${origin}/login?error=${encodeURIComponent(error.message)}`,
+      );
+    }
   }
 
   const {
@@ -30,7 +36,8 @@ export async function GET(request: Request) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.redirect(`${origin}/login?error=no_user`);
+    // Ni code ni sesión preexistente — el usuario llegó acá por error.
+    return NextResponse.redirect(`${origin}/login?next=${encodeURIComponent(next)}`);
   }
 
   // Verifica consentimiento. Si no aceptó → /consent.
@@ -45,7 +52,10 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/consent?next=${encodeURIComponent(next)}`);
   }
 
-  // Resume al step correcto (perfil incompleto, cuestionario, comparador...)
+  // Resume al step correcto (perfil incompleto, cuestionario, encuesta final...).
+  // Si el caller pasó `?next=` apuntando a una ruta válida del flujo, respetamos
+  // su intención sobre la resolución por defecto.
   const resumePath = await resolveStudentResumePath(user.id);
-  return NextResponse.redirect(`${origin}${resumePath}`);
+  const finalPath = next && next !== "/" && next.startsWith("/") ? next : resumePath;
+  return NextResponse.redirect(`${origin}${finalPath}`);
 }

@@ -12,7 +12,11 @@ import {
   isAnswerComplete,
   answerPayload,
 } from "./QuestionRenderer";
-import { saveAnswer, submitQuestionnaire } from "@/app/(student)/cuestionario/_actions";
+import {
+  saveAnswer,
+  submitPreQuestionnaire,
+  submitPostQuestionnaire,
+} from "@/app/(student)/cuestionario/_actions";
 import { ERROR_MESSAGES } from "@/lib/errors";
 import { captureEvent } from "@/lib/analytics/posthog";
 import { useTrackOnce } from "@/lib/analytics/useTrack";
@@ -29,20 +33,29 @@ export function MultiStepForm({
   questions,
   initialAnswers,
   initialStep,
+  momento,
 }: {
   questions: QuestionRecord[];
   initialAnswers: Record<string, AnswerValue>;
   initialStep: number;
+  momento: "pre" | "post";
 }) {
   const router = useRouter();
+  const routeBase = `/cuestionario-${momento}`;
   const [stepIndex, setStepIndex] = useState(
     Math.max(0, Math.min(initialStep - 1, questions.length - 1)),
   );
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>(initialAnswers);
   const [error, setError] = useState<string | null>(null);
-  const [saving, startSaving] = useTransition();
+  const [saving, setSaving] = useState(false);
   const [submitting, startSubmitting] = useTransition();
   const saveTimer = useRef<NodeJS.Timeout | null>(null);
+  // `dirty` marca que la respuesta actual cambió desde la última vez que
+  // se persistió. Evita duplicar el saveAnswer al hacer click en Siguiente
+  // cuando el autosave ya guardó. Es un ref para no re-renderizar.
+  const dirty = useRef<Record<string, boolean>>({});
+  // Guard contra dobles clicks / clicks durante navegación.
+  const navigating = useRef(false);
 
   const current = questions[stepIndex];
   const total = questions.length;
@@ -52,69 +65,92 @@ export function MultiStepForm({
   // Trackeo de inicio del cuestionario (una sola vez por sesión del componente).
   useTrackOnce(ANALYTICS_EVENTS.QUESTIONNAIRE_STARTED, { total_questions: total });
 
-  // Autosave debounced 700ms
+  // Autosave debounced 700ms — solo si la respuesta cambió desde la última save.
   useEffect(() => {
     if (!current || !currentAnswer || !isAnswerComplete(current, currentAnswer)) return;
+    if (!dirty.current[current.id]) return;
+
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => {
-      startSaving(async () => {
-        const result = await saveAnswer({
-          questionId: current.id,
-          valor: answerPayload(current, currentAnswer),
-        });
-        if (!result.ok) {
-          setError(
-            result.error.code === "ValidationError"
-              ? result.error.message
-              : ERROR_MESSAGES[result.error.code],
-          );
-        } else {
-          setError(null);
-        }
-      });
+    const questionId = current.id;
+    const valor = answerPayload(current, currentAnswer);
+    saveTimer.current = setTimeout(async () => {
+      setSaving(true);
+      const result = await saveAnswer({ questionId, valor, momento });
+      setSaving(false);
+      if (result.ok) {
+        dirty.current[questionId] = false;
+        setError(null);
+      } else {
+        setError(
+          result.error.code === "ValidationError"
+            ? result.error.message
+            : ERROR_MESSAGES[result.error.code],
+        );
+      }
     }, 700);
+
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentAnswer]);
 
-  function goNext() {
-    if (!current || !canAdvance) return;
+  async function goNext() {
+    if (!current || !canAdvance || navigating.current) return;
+    navigating.current = true;
+
+    // Cancela el timer del autosave para evitar guardado duplicado.
     if (saveTimer.current) {
       clearTimeout(saveTimer.current);
       saveTimer.current = null;
     }
-    startSaving(async () => {
-      const result = await saveAnswer({
-        questionId: current.id,
-        valor: answerPayload(current, currentAnswer!),
-      });
-      if (!result.ok) {
-        setError(
-          result.error.code === "ValidationError"
-            ? result.error.message
-            : ERROR_MESSAGES[result.error.code],
-        );
-        return;
+
+    try {
+      // Solo guarda si la respuesta actual está sin persistir.
+      if (dirty.current[current.id]) {
+        setSaving(true);
+        const result = await saveAnswer({
+          questionId: current.id,
+          valor: answerPayload(current, currentAnswer!),
+          momento,
+        });
+        setSaving(false);
+        if (!result.ok) {
+          setError(
+            result.error.code === "ValidationError"
+              ? result.error.message
+              : ERROR_MESSAGES[result.error.code],
+          );
+          return;
+        }
+        dirty.current[current.id] = false;
       }
+
       setError(null);
       if (stepIndex < total - 1) {
         captureEvent(ANALYTICS_EVENTS.QUESTIONNAIRE_STEP_ADVANCED, {
           from_step: stepIndex + 1,
           to_step: stepIndex + 2,
-          dimension: current?.dimension_tematica,
+          dimension: current.dimension_tematica,
         });
         setStepIndex(stepIndex + 1);
-        router.replace(`/cuestionario/${stepIndex + 2}`);
+        router.replace(`${routeBase}/${stepIndex + 2}`);
       }
-    });
+    } finally {
+      navigating.current = false;
+    }
   }
 
   function goPrev() {
-    if (stepIndex === 0) return;
+    if (stepIndex === 0 || navigating.current) return;
     setStepIndex(stepIndex - 1);
-    router.replace(`/cuestionario/${stepIndex}`);
+    router.replace(`${routeBase}/${stepIndex}`);
+  }
+
+  function handleAnswerChange(next: AnswerValue) {
+    if (!current) return;
+    dirty.current[current.id] = true;
+    setAnswers((prev) => ({ ...prev, [current.id]: next }));
   }
 
   function handleSubmit() {
@@ -123,8 +159,13 @@ export function MultiStepForm({
       try {
         captureEvent(ANALYTICS_EVENTS.QUESTIONNAIRE_COMPLETED, {
           total_questions: total,
+          momento,
         });
-        await submitQuestionnaire();
+        if (momento === "pre") {
+          await submitPreQuestionnaire();
+        } else {
+          await submitPostQuestionnaire();
+        }
       } catch (e) {
         const errResult = e as { error?: { code?: string } };
         if (errResult?.error?.code === "MissingAnswers") {
@@ -183,10 +224,8 @@ export function MultiStepForm({
           <QuestionRenderer
             question={current}
             answer={currentAnswer}
-            onChange={(next) =>
-              setAnswers((prev) => ({ ...prev, [current.id]: next }))
-            }
-            disabled={saving || submitting}
+            onChange={handleAnswerChange}
+            disabled={submitting}
           />
 
           {error ? (
@@ -206,7 +245,7 @@ export function MultiStepForm({
           <button
             type="button"
             onClick={goPrev}
-            disabled={stepIndex === 0 || saving || submitting}
+            disabled={stepIndex === 0 || submitting}
             className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-graphite)] transition hover:text-[var(--color-navy-upao)] disabled:cursor-not-allowed disabled:opacity-30"
           >
             <span aria-hidden>←</span> Anterior
@@ -223,7 +262,7 @@ export function MultiStepForm({
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={!allAnswered || saving || submitting}
+              disabled={!allAnswered || submitting}
               className="group inline-flex items-center gap-2 rounded-full bg-[var(--color-navy-upao)] px-6 py-3 text-sm font-medium text-white transition hover:bg-[var(--color-navy-deep)] disabled:cursor-not-allowed disabled:opacity-40"
             >
               {submitting ? "Enviando…" : "Enviar cuestionario"}
@@ -238,10 +277,10 @@ export function MultiStepForm({
             <button
               type="button"
               onClick={goNext}
-              disabled={!canAdvance || saving || submitting}
+              disabled={!canAdvance || submitting}
               className="group inline-flex items-center gap-2 rounded-full bg-[var(--color-navy-upao)] px-6 py-3 text-sm font-medium text-white transition hover:bg-[var(--color-navy-deep)] disabled:cursor-not-allowed disabled:opacity-40"
             >
-              Siguiente
+              {saving ? "Guardando…" : "Siguiente"}
               <span
                 aria-hidden
                 className="inline-block transition-transform group-hover:translate-x-1"

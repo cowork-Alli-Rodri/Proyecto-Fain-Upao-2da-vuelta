@@ -2,17 +2,35 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { createMiddlewareClient } from "@/lib/supabase/middleware";
 
-const STUDENT_ONLY_PATHS = ["/cuestionario", "/comparador", "/preferencia", "/cierre"];
+const STUDENT_ONLY_PATHS = [
+  "/cuestionario",
+  "/cuestionario-pre",
+  "/cuestionario-post",
+  "/preferencia",
+  "/cierre",
+  "/encuesta-final",
+];
 const TEACHER_ADMIN_PATHS = ["/dashboard"];
 const ADMIN_ONLY_PATHS = ["/admin"];
 const PUBLIC_PATHS = [
   "/",
   "/como-funciona",
+  "/candidatos",
+  "/no-te-dejes-sorprender",
+  "/inicio",
   "/login",
+  "/docente",
   "/auth/callback",
+  "/auth/signout",
   "/consent",
   "/profile",
 ];
+
+// Auto-logout duro: cualquier sesión con más de 8h de antigüedad se cierra.
+// El timestamp `auth_at` se escribe la primera vez que el middleware ve a un
+// usuario autenticado sin cookie previa, y se compara en cada request.
+const AUTH_TTL_MS = 8 * 60 * 60 * 1000;
+const AUTH_AT_COOKIE = "vi_auth_at";
 
 export async function proxy(request: NextRequest) {
   const { supabase, response } = createMiddlewareClient(request);
@@ -32,8 +50,35 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Si está autenticado, leer el rol para gatekeeping
+  // Si está autenticado:
   if (user) {
+    // 0) Auto-logout 8h
+    const authAtRaw = request.cookies.get(AUTH_AT_COOKIE)?.value;
+    const authAt = authAtRaw ? Number(authAtRaw) : null;
+    const now = Date.now();
+
+    if (authAt && Number.isFinite(authAt) && now - authAt > AUTH_TTL_MS) {
+      await supabase.auth.signOut();
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      url.searchParams.set("reason", "session_expired");
+      if (!isPublic) url.searchParams.set("next", pathname);
+      const expired = NextResponse.redirect(url);
+      expired.cookies.delete(AUTH_AT_COOKIE);
+      return expired;
+    }
+
+    if (!authAt || !Number.isFinite(authAt)) {
+      response.cookies.set(AUTH_AT_COOKIE, String(now), {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: AUTH_TTL_MS / 1000,
+      });
+    }
+
+    // 1) Role-gating
     const { data } = await supabase
       .from("profiles")
       .select("role")
@@ -76,6 +121,6 @@ export const config = {
      * - public files in app/
      * - api routes (manejan auth por sí mismos)
      */
-    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|api).*)",
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|icon|apple-icon|api|pixart|candidates|parties).*)",
   ],
 };

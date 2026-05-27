@@ -96,9 +96,19 @@ async function main() {
     process.exit(1);
   }
 
-  if (!url.includes("127.0.0.1") && !url.includes("localhost")) {
-    console.error("ABORT: este script solo corre contra Supabase local. URL detectada:", url);
+  const allowCloud = process.argv.includes("--allow-cloud");
+  const isLocal = url.includes("127.0.0.1") || url.includes("localhost");
+
+  if (!isLocal && !allowCloud) {
+    console.error("ABORT: detectada URL de Supabase Cloud:", url);
+    console.error("       Para sembrar demos en Cloud (testing previo a entrega) usa el flag");
+    console.error("       --allow-cloud. Los demos quedan identificados por correo");
+    console.error("       demo-NNNN@voto-informado.test y se limpian con pnpm run seed:demo:clean.");
     process.exit(1);
+  }
+  if (!isLocal && allowCloud) {
+    console.warn("⚠  Sembrando datos demo en Supabase CLOUD (--allow-cloud activo).");
+    console.warn("   URL:", url);
   }
 
   const supabase = createClient<Database>(url, key, {
@@ -168,7 +178,6 @@ async function main() {
     const ciclo = randomInt(1, 14);
     const rango_edad = pick(RANGOS);
     const genero = Math.random() > 0.2 ? pick(GENEROS) : null;
-    const compareOrder = Math.random() < 0.5 ? "keiko_left" : "roberto_left";
 
     // Update profile
     const completedAt = new Date(
@@ -185,7 +194,6 @@ async function main() {
         ciclo,
         rango_edad,
         genero,
-        compare_order: compareOrder,
         current_step: questions.length,
         questionnaire_completed_at: completedAt,
       })
@@ -229,6 +237,7 @@ async function main() {
         question_snapshot: q.enunciado,
         dimension_snapshot: q.dimension_tematica,
         tipo_snapshot: q.tipo,
+        momento_snapshot: "pre",
       });
     }
 
@@ -251,7 +260,6 @@ async function main() {
         candidato_preferido: candidato,
         confianza: randomInt(3, 10),
         motivo: pick(MOTIVOS),
-        compare_order_at_submit: compareOrder,
         submitted_at: completedAt,
       });
     }

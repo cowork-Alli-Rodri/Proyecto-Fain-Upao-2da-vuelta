@@ -18,6 +18,12 @@
   --color-navy-deep: oklch(20.8% 0.121 263);
   --color-navy-soft: oklch(45% 0.085 263);
 
+  /* Naranja institucional UPAO (Pantone 1505 — usado en logos y CTAs oficiales).
+     #F37021 aprox → OKLCH equivalente. */
+  --color-orange-upao: oklch(67% 0.175 45);
+  --color-orange-upao-deep: oklch(58% 0.18 40);
+  --color-orange-upao-soft: oklch(82% 0.13 55);
+
   --color-cyan-electric: oklch(87.5% 0.156 213);
   --color-cyan-deep: oklch(58% 0.135 213);
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,18 +10,20 @@ import { createClient } from "@/lib/supabase/browser";
 export function LoginCard({
   nextPath,
   initialError,
+  initialNotice = null,
 }: {
   nextPath: string;
   initialError: string | null;
+  initialNotice?: string | null;
 }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(initialError);
-  const [info, setInfo] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(initialNotice);
   const [pending, startTransition] = useTransition();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
 
-  function handleOAuth(provider: "google" | "azure") {
+  function handleOAuth(provider: "google") {
     setError(null);
     startTransition(async () => {
       const supabase = createClient();
@@ -50,12 +53,22 @@ export function LoginCard({
         }
         window.location.href = "/auth/callback?next=" + encodeURIComponent(nextPath);
       } else {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const emailRedirectTo =
+          typeof window !== "undefined"
+            ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`
+            : undefined;
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo },
+        });
         if (error) {
           setError(error.message);
           return;
         }
-        setInfo("Cuenta creada. Si tu correo requiere confirmación, revisa tu bandeja.");
+        setInfo(
+          "Cuenta creada. Te enviamos un correo de confirmación — al hacer click en el enlace vuelves directo al siguiente paso del flujo.",
+        );
       }
     });
   }
@@ -73,15 +86,6 @@ export function LoginCard({
           <GoogleIcon />
           Continuar con Google
         </button>
-        <button
-          type="button"
-          disabled={pending}
-          onClick={() => handleOAuth("azure")}
-          className="flex w-full items-center justify-center gap-3 rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-5 py-4 text-sm font-medium text-[var(--color-foreground)] transition hover:border-[var(--color-navy-upao)] hover:shadow-[var(--shadow-soft)] disabled:opacity-50"
-        >
-          <MicrosoftIcon />
-          Continuar con Microsoft
-        </button>
       </div>
 
       {/* Separador */}
@@ -91,6 +95,54 @@ export function LoginCard({
           o con correo
         </span>
         <span className="h-px flex-1 bg-[var(--color-border)]" />
+      </div>
+
+      {/* Segmented control: Ingresar / Crear cuenta */}
+      <div
+        role="tablist"
+        aria-label="Tipo de acceso"
+        className="relative grid grid-cols-2 rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-paper)] p-1"
+      >
+        <motion.div
+          layout
+          transition={{ type: "spring", stiffness: 380, damping: 32 }}
+          className="absolute inset-y-1 w-[calc(50%-0.25rem)] rounded-lg bg-[var(--color-navy-upao)] shadow-[var(--shadow-soft)]"
+          style={{ left: mode === "signin" ? "0.25rem" : "calc(50% + 0rem)" }}
+        />
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === "signin"}
+          onClick={() => {
+            setMode("signin");
+            setError(null);
+            setInfo(null);
+          }}
+          className={`relative z-10 py-2.5 text-sm font-medium transition-colors ${
+            mode === "signin"
+              ? "text-white"
+              : "text-[var(--color-graphite)] hover:text-[var(--color-navy-upao)]"
+          }`}
+        >
+          Ingresar
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === "signup"}
+          onClick={() => {
+            setMode("signup");
+            setError(null);
+            setInfo(null);
+          }}
+          className={`relative z-10 py-2.5 text-sm font-medium transition-colors ${
+            mode === "signup"
+              ? "text-white"
+              : "text-[var(--color-graphite)] hover:text-[var(--color-navy-upao)]"
+          }`}
+        >
+          Crear cuenta
+        </button>
       </div>
 
       {/* Email + password */}
@@ -146,35 +198,36 @@ export function LoginCard({
         <button
           type="submit"
           disabled={pending}
-          className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-navy-upao)] px-5 py-4 text-sm font-medium text-white transition hover:bg-[var(--color-navy-deep)] disabled:opacity-50"
+          className="group relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-[var(--color-navy-upao)] px-5 py-4 text-sm font-medium text-white transition hover:bg-[var(--color-navy-deep)] disabled:opacity-50"
         >
-          {pending ? "Procesando..." : mode === "signin" ? "Ingresar" : "Crear cuenta"}
-          <span
-            aria-hidden
-            className="inline-block transition-transform group-hover:translate-x-1"
-          >
-            →
-          </span>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.span
+              key={pending ? "pending" : mode}
+              initial={{ y: 12, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -12, opacity: 0 }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="inline-flex items-center gap-2"
+            >
+              {pending
+                ? "Procesando..."
+                : mode === "signin"
+                  ? "Ingresar"
+                  : "Crear cuenta"}
+              <span
+                aria-hidden
+                className="inline-block transition-transform group-hover:translate-x-1"
+              >
+                →
+              </span>
+            </motion.span>
+          </AnimatePresence>
         </button>
       </form>
 
-      <button
-        type="button"
-        onClick={() => {
-          setMode(mode === "signin" ? "signup" : "signin");
-          setError(null);
-          setInfo(null);
-        }}
-        className="block w-full text-center text-sm text-[var(--color-graphite)] underline-offset-4 hover:text-[var(--color-navy-upao)] hover:underline"
-      >
-        {mode === "signin"
-          ? "¿No tienes cuenta? Crear una"
-          : "¿Ya tienes cuenta? Ingresar"}
-      </button>
-
       <p className="text-center text-xs leading-relaxed text-[var(--color-muted-foreground)]">
-        Al ingresar aceptas el tratamiento académico y anonimizable de tus
-        datos personales.
+        Al ingresar aceptas que tus datos se usen con fines académicos y se
+        protejan según se explica en el consentimiento.
         <br />
         Esta plataforma no emite recomendaciones de voto.
       </p>
@@ -205,13 +258,3 @@ function GoogleIcon() {
   );
 }
 
-function MicrosoftIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden>
-      <path d="M0 0h9.5v9.5H0z" fill="#F25022" />
-      <path d="M10.5 0H20v9.5h-9.5z" fill="#7FBA00" />
-      <path d="M0 10.5h9.5V20H0z" fill="#00A4EF" />
-      <path d="M10.5 10.5H20V20h-9.5z" fill="#FFB900" />
-    </svg>
-  );
-}

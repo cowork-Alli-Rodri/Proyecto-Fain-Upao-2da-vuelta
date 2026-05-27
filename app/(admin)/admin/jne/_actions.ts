@@ -35,7 +35,7 @@ export async function refreshJneNow(): Promise<
   try {
     const result = await jneRefresh({ triggeredBy: "admin" });
     revalidatePath("/admin/jne");
-    revalidatePath("/comparador");
+    revalidatePath("/candidatos");
     return ok(result);
   } catch (e) {
     logger.error("refreshJneNow threw unexpectedly", {

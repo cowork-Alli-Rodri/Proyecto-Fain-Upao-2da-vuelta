@@ -13,6 +13,17 @@ description: "Task list — Voto Informado UPAO Segunda Vuelta 2026"
 
 **Organization**: agrupado por user story (US1=P1 MVP, US2=P2, US3=P3, US4=P3) para entregar incrementos independientemente testables y desplegables.
 
+## Cambios de producto post-spec (registro)
+
+Decisiones tomadas después de la spec original. El spec.md y data-model.md no fueron reescritos por costo/beneficio, pero quedan documentadas aquí y reflejadas en el código:
+
+- **Comparador removido del flow estudiante**. Las rutas `app/(student)/comparador/*` fueron eliminadas. El contenido equivalente vive como página marketing pública en `app/(marketing)/candidatos/`. Impacto: T071-T076 quedan como "implementado y luego movido"; el flow estudiante ahora es `consent → profile → cuestionario → preferencia → cierre`. La encuesta post-flow se añadió en `app/(student)/encuesta-final/`.
+- **`compare_order` removido del modelo**. Migration `20260525000001_remove_compare_order.sql` elimina la columna y el ENUM. Los charts/queries de "efecto orden" (T095) quedan obsoletos como artefacto histórico.
+- **Fact-check público añadido**. Nueva sección `app/(marketing)/no-te-dejes-sorprender/` + admin en `app/(admin)/admin/fact-checks/` + migration `20260522000003_fact_checks.sql`. Integra Google Fact Check Tools API.
+- **Encuesta post-flow añadida** (`app/(student)/encuesta-final/` + migration `20260522000002_post_survey.sql`).
+- **Resumen JNE en cache** (migration `20260525000002_jne_resumen.sql`).
+- **Drop de tablas obsoletas** (migration `20260526000001_drop_obsolete_tables.sql`).
+
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: ejecutable en paralelo (archivos distintos, sin dependencias incompletas).
@@ -102,64 +113,64 @@ Single-project Next.js 16 App Router. Rutas relativas a la raíz del repo. Estru
 
 ### Tests para User Story 1 (TDD obligatorio en auth + persistencia + flujo crítico)
 
-- [ ] T041 [P] [US1] Vitest contract test para `acceptConsent` en `tests/unit/actions/consent.test.ts`: verifica que falta de `dataUseAccepted` devuelve `ConsentMissing`; que la inserción registra `accepted_terms_at` y `accepted_data_use_at`.
-- [ ] T042 [P] [US1] Vitest contract test para `saveAnswer` en `tests/unit/actions/answers.test.ts`: snapshot se setea en primer insert; rate limit 5/min; upsert por (student_id, question_id).
-- [ ] T043 [P] [US1] Vitest contract test para `submitPreference` en `tests/unit/actions/preference.test.ts`: rechaza con `QuestionnaireIncomplete` si falta cuestionario; rechaza con `AlreadySubmitted` en segundo intento; valida confianza 1-10 y motivo ≤500.
-- [ ] T044 [P] [US1] Vitest integration test para `assignCompareOrderIfMissing` en `tests/integration/compare-order.test.ts` (Supabase local Docker): verifica persistencia y distribución ~50/50 en 1000 iteraciones.
-- [ ] T045 [P] [US1] Vitest integration test para `submitQuestionnaire` en `tests/integration/questionnaire-submit.test.ts`: rechaza si faltan respuestas activas; setea `questionnaire_completed_at`.
-- [ ] T046 [P] [US1] Playwright E2E happy-path en `tests/e2e/student-flow.spec.ts`: login mockeado → consent (con opt-in marcado) → profile → cuestionario completo → comparador (verifica orden persistente) → preferencia → cierre. Acceptance Scenarios 1-6 de US1. Incluir al menos un caso de error contextual (constitución VI: nunca "Error 500" genérico) verificando que un fallo de server action devuelve mensaje legible al usuario.
-- [ ] T046a [P] [US1] Playwright E2E en `tests/e2e/session-expiration.spec.ts` (cubre edge case "Sesión expirada 24h"): estudiante completa profile + 2 preguntas → fuerza expiración de sesión (cookies removed) → vuelve → re-autentica → verifica que `/cuestionario` redirige al step donde quedó sin perder respuestas previas.
+- [X] T041 [P] [US1] `tests/unit/actions/consent.test.ts` — 6 specs sobre `acceptConsent`: ConsentMissing (3 variantes: termsAccepted false / dataUseAccepted false / input vacío), Unauthenticated, happy path con timestamps + ip/ua hasheados + redirect `/profile`, redirect `/cuestionario` cuando profile ya tiene facultad. Mocks de next/headers, next/navigation, supabase server y turnstile vía helper `tests/unit/helpers/supabase-mock.ts`.
+- [X] T042 [P] [US1] `tests/unit/actions/answers.test.ts` — 8 specs sobre `saveAnswer`: ValidationError(questionId no-uuid), Unauthenticated, RateLimited (mock 5/min), NotFound (pregunta inactiva), ValidationError(valor incompatible con likert), AlreadySubmitted (questionnaire_completed_at no nulo), primer insert setea question_snapshot/dimension_snapshot/tipo_snapshot, update existente NO toca snapshot.
+- [X] T043 [P] [US1] `tests/unit/actions/preference.test.ts` — 8 specs sobre `submitPreference`: ValidationError (candidato fuera de enum, confianza >10, motivo >500), Unauthenticated, RateLimited, QuestionnaireIncomplete, AlreadySubmitted (existe row), happy path inserta `compare_order_at_submit` copiado del profile + redirect `/cierre`.
+- [X] T044 [P] [US1] `tests/integration/compare-order.test.ts` con auto-skip sin Supabase local. 2 specs: distribución `assign_compare_order_random()` ~50/50 en 1000 iteraciones (ratio 0.45-0.55), persistencia + idempotencia del valor en `profiles.compare_order`.
+- [X] T045 [P] [US1] `tests/integration/questionnaire-submit.test.ts` con auto-skip. 2 specs: con respuestas incompletas `questionnaire_completed_at` debe quedar null; con todas las preguntas activas respondidas, el campo se persiste correctamente.
+- [X] T046 [P] [US1] `tests/e2e/student-flow.spec.ts` con auto-skip — happy-path completo login email/password → consent (incluye caso de error contextual sin checkboxes, constitución VI) → profile → cuestionario iterativo → comparador (verifica nombres Keiko + Roberto + tab económica) → preferencia → cierre. Setup vía service role para crear user con email_confirm: true; cleanup borra preferences/answers/consent/auth.
+- [X] T046a [P] [US1] `tests/e2e/session-expiration.spec.ts` con 4 specs: 3 públicos (no requieren Supabase: `/cuestionario`, `/comparador`, `/preferencia` redirigen a `/login` con `?next=...` sin sesión) + 1 con Supabase local (estudiante completa profile + 2 respuestas → `clearCookies()` → reintenta `/cuestionario` → redirect a login con next → re-login → respuestas previas siguen en DB).
 
 ### Validation schemas
 
-- [ ] T047 [P] [US1] Crear `lib/validation/consent.schema.ts` con Zod (termsAccepted: literal(true), dataUseAccepted: literal(true), consentVersion: string).
-- [ ] T048 [P] [US1] Crear `lib/validation/profile.schema.ts` con Zod (facultad/carrera: string min 2, ciclo: int 1-14, rangoEdad: enum, genero: opcional).
-- [ ] T049 [P] [US1] Crear `lib/validation/answer.schema.ts` con discriminated union Zod por `tipo` (likert int 1-5, single string, multiple array, text 1-1000, ranking array sin duplicados, comparison object {keiko, roberto}).
-- [ ] T050 [P] [US1] Crear `lib/validation/preference.schema.ts` con Zod (candidatoPreferido enum keiko/roberto/indeciso, confianza int 1-10, motivo opcional ≤500).
+- [X] T047 [P] [US1] `lib/validation/consent.schema.ts` con Zod (termsAccepted: literal(true), dataUseAccepted: literal(true), consentVersion: string).
+- [X] T048 [P] [US1] `lib/validation/profile.schema.ts` con Zod (facultad/carrera: string min 2, ciclo: int 1-14, rangoEdad: enum, genero: opcional).
+- [X] T049 [P] [US1] `lib/validation/answer.schema.ts` con discriminated union Zod por `tipo` (likert int 1-5, single string, multiple array, text 1-1000, ranking array sin duplicados, comparison object {keiko, roberto}).
+- [X] T050 [P] [US1] `lib/validation/preference.schema.ts` con Zod (candidatoPreferido enum keiko/roberto/indeciso, confianza int 1-10, motivo opcional ≤500).
 
 ### Server actions
 
-- [ ] T051 [US1] Implementar `app/(auth)/consent/_actions.ts` con `acceptConsent({ termsAccepted, dataUseAccepted, consentVersion })` que valida con Zod, inserta en `consent_events`, retorna `Result`.
-- [ ] T052 [US1] Implementar `app/(auth)/profile/_actions.ts` con `updateProfile(data)` que valida y hace UPDATE en `profiles`. Incluye `requestDataDeletion()` para self-service Ley 29733 (FR-041).
-- [ ] T053 [US1] Implementar `app/(student)/cuestionario/_actions.ts` con `saveAnswer({ questionId, valor })` (upsert con snapshot, rate-limit 5/min) y `submitQuestionnaire()` (valida completitud, setea `questionnaire_completed_at`).
-- [ ] T054 [US1] Implementar `app/(student)/comparador/_actions.ts` con `assignCompareOrderIfMissing()` idempotente usando función `assign_compare_order_random()` de DB.
-- [ ] T055 [US1] Implementar `app/(student)/preferencia/_actions.ts` con `submitPreference({ candidatoPreferido, confianza, motivo? })` que verifica Turnstile, inserta una sola vez, copia `compare_order_at_submit` desde `profiles.compare_order`.
+- [X] T051 [US1] `app/(auth)/consent/_actions.ts` con `acceptConsent({ termsAccepted, dataUseAccepted, consentVersion })` que valida con Zod, inserta en `consent_events`, retorna `Result`.
+- [X] T052 [US1] `app/(auth)/profile/_actions.ts` con `updateProfile(data)` que valida y hace UPDATE en `profiles`. Incluye `requestDataDeletion()` delegando a `lib/retention/delete-request.ts` (FR-041, refactor de T135).
+- [X] T053 [US1] `app/(student)/cuestionario/_actions.ts` con `saveAnswer({ questionId, valor })` (upsert con snapshot, rate-limit 5/min) y `submitQuestionnaire()` (valida completitud, setea `questionnaire_completed_at`).
+- [X] T054 [US1] `app/(student)/comparador/_actions.ts` con `assignCompareOrderIfMissing()` idempotente usando función `assign_compare_order_random()` de DB.
+- [X] T055 [US1] `app/(student)/preferencia/_actions.ts` con `submitPreference({ candidatoPreferido, confianza, motivo? })` que verifica Turnstile, inserta una sola vez, copia `compare_order_at_submit` desde `profiles.compare_order`.
 
 ### UI: Auth & consent
 
-- [ ] T056 [US1] Implementar `app/(auth)/login/page.tsx` con botones Google + Microsoft + formulario email/password. Integrar Turnstile invisible. Diseño per `docs/design.md`.
-- [ ] T057 [US1] Implementar `app/(auth)/auth/callback/route.ts` que intercambia OAuth code → session, verifica `allowed_teachers`, redirige a `/consent` o `/dashboard` según rol.
-- [ ] T058 [US1] Implementar `app/(auth)/consent/page.tsx` con texto legal completo (Ley 29733 + finalidad + retención 12m + anonimización) y dos checkboxes obligatorios (no pre-marcados). Versión `'v1'`.
-- [ ] T059 [US1] Implementar `app/(auth)/profile/page.tsx` con React Hook Form + zodResolver, campos facultad/carrera/ciclo/rangoEdad/genero. Listas de facultades/carreras UPAO desde `lib/constants/upao.ts`.
-- [ ] T060 [P] [US1] Crear `lib/constants/upao.ts` con listas oficiales de facultades y carreras de UPAO (Trujillo), enum de rangos de edad y géneros.
+- [X] T056 [US1] `app/(auth)/login/page.tsx` + `_components/LoginCard.tsx` con botones Google + Microsoft + formulario email/password + Turnstile invisible.
+- [X] T057 [US1] `app/auth/callback/route.ts` intercambia OAuth code → session, verifica `allowed_teachers`, redirige según rol (renamed del path `app/(auth)/auth/callback` por requerimientos de App Router para rutas API).
+- [X] T058 [US1] `app/(auth)/consent/page.tsx` + `_components/ConsentForm.tsx` con texto legal y dos checkboxes obligatorios. Versión `'v1'`.
+- [X] T059 [US1] `app/(auth)/profile/page.tsx` + `_components/` con React Hook Form + zodResolver, campos facultad/carrera/ciclo/rangoEdad/genero.
+- [X] T060 [P] [US1] `lib/constants/upao.ts` con listas oficiales de facultades y carreras de UPAO, enums de rangos de edad y géneros.
 
 ### UI: Cuestionario
 
-- [ ] T061 [US1] Implementar `app/(student)/cuestionario/page.tsx` RSC que lee `profiles.current_step` y redirige a `/cuestionario/[step]`. Bloquea acceso si consent o profile incompletos.
-- [ ] T062 [US1] Implementar `app/(student)/cuestionario/[step]/page.tsx` RSC que fetcha la pregunta correspondiente y respuesta previa (si hay), renderiza el componente por tipo.
-- [ ] T063 [US1] Implementar `components/questionnaire/MultiStepForm.tsx` (client component) con autosave debounced (700ms), avance/retroceso, persistencia de `current_step`.
-- [ ] T064 [P] [US1] Implementar `components/questionnaire/types/LikertInput.tsx` (escala 1-5 con etiquetas neutrales).
-- [ ] T065 [P] [US1] Implementar `components/questionnaire/types/SingleChoice.tsx`.
-- [ ] T066 [P] [US1] Implementar `components/questionnaire/types/MultipleChoice.tsx`.
-- [ ] T067 [P] [US1] Implementar `components/questionnaire/types/TextInput.tsx` con contador 0/1000 y sanitización XSS.
-- [ ] T068 [P] [US1] Implementar `components/questionnaire/types/RankingInput.tsx` con dnd-kit.
-- [ ] T069 [P] [US1] Implementar `components/questionnaire/types/ComparisonInput.tsx` (Keiko vs Roberto, sliders por dimensión).
-- [ ] T070 [P] [US1] Implementar `components/questionnaire/ProgressBar.tsx` y `components/questionnaire/OfflineIndicator.tsx` (escucha `window.online/offline`).
+- [X] T061 [US1] `app/(student)/cuestionario/page.tsx` RSC redirige a `/cuestionario/[step]`. Bloquea acceso si consent o profile incompletos.
+- [X] T062 [US1] `app/(student)/cuestionario/[step]/page.tsx` RSC fetcha la pregunta correspondiente y respuesta previa, renderiza el componente por tipo.
+- [X] T063 [US1] `components/questionnaire/MultiStepForm.tsx` (client component) con autosave debounced, avance/retroceso, persistencia de `current_step`. Despacha eventos PostHog `QUESTIONNAIRE_STARTED/STEP_ADVANCED/COMPLETED` (T150).
+- [X] T064 [P] [US1] `components/questionnaire/types/LikertInput.tsx` (escala 1-5 con etiquetas neutrales).
+- [X] T065 [P] [US1] `components/questionnaire/types/SingleChoice.tsx`.
+- [X] T066 [P] [US1] `components/questionnaire/types/MultipleChoice.tsx`.
+- [X] T067 [P] [US1] `components/questionnaire/types/TextInput.tsx` con contador 0/1000 y sanitización XSS.
+- [X] T068 [P] [US1] `components/questionnaire/types/RankingInput.tsx` con dnd-kit.
+- [X] T069 [P] [US1] `components/questionnaire/types/ComparisonInput.tsx` (Keiko vs Roberto, sliders por dimensión).
+- [X] T070 [P] [US1] `components/questionnaire/ProgressBar.tsx` + `OfflineIndicator.tsx` + `QuestionRenderer.tsx`.
 
 ### UI: Comparador
 
-- [ ] T071 [US1] Implementar `app/(student)/comparador/page.tsx` RSC que: verifica `questionnaire_completed_at`, invoca `assignCompareOrderIfMissing`, fetcha `candidates` + `plan_dimensions`. Bloquea con mensaje contextual si cuestionario incompleto (FR-013, edge case).
-- [ ] T072 [US1] Implementar `components/compare/SplitView.tsx` que aplica `profiles.compare_order` para decidir columna izquierda/derecha.
-- [ ] T073 [P] [US1] Implementar `components/compare/CandidateColumn.tsx` con foto, nombre completo, partido, tinte de partido sutil (5-10%), link de descarga PDF (FR-019).
-- [ ] T074 [P] [US1] Implementar `components/compare/DimensionTabs.tsx` con 4 tabs (Social/Económica/Ambiental/Institucional), cada tab muestra Problema/Objetivo/Indicador/Meta del candidato. Si campo `null` → render "No declarado por el JNE" (FR-018).
-- [ ] T075 [P] [US1] Aplicar tilt 3D suave en cards (`react-tilt` max 8deg) y microinteractions (ripple, magnetic buttons) según `docs/design.md`.
-- [ ] T076 [P] [US1] Implementar skeleton shimmer con frases rotatorias contextuales ("Consultando JNE...", "Cargando propuestas...") en `components/compare/Skeleton.tsx`.
+- [X] T071 [US1] `app/(student)/comparador/page.tsx` RSC verifica `questionnaire_completed_at`, invoca `assignCompareOrderIfMissing`, fetcha `candidates` + `plan_dimensions`.
+- [X] T072 [US1] `components/compare/SplitView.tsx` aplica `profiles.compare_order` y maneja el tab bar editorial (4 dimensiones). Despacha `COMPARATOR_VIEWED/DIMENSION_VIEWED/TIME_SPENT` (T150).
+- [X] T073 [P] [US1] `components/compare/CandidateColumn.tsx` con foto, nombre completo, partido, tinte de partido sutil, link de descarga PDF (FR-019). Render "No declarado por el JNE" si campo `null` (FR-018).
+- [X] T074 [P] [US1] DimensionTabs inline en `SplitView.tsx` (tab bar editorial Social/Económica/Ambiental/Institucional) — no se extrajo a archivo separado por reuso 1-1 con SplitView.
+- [X] T075 [P] [US1] CERRADO COMO NO-OP. La ruta `/comparador` fue removida del flow del estudiante; el comparador vive ahora como página de marketing `/candidatos` (`app/(marketing)/candidatos/_components/CandidatosSplitView.tsx`). Las micro-interacciones (tilt/ripple) se evaluarán en esa superficie si métricas lo justifican.
+- [X] T076 [P] [US1] Skeleton shimmer integrado vía `Suspense` + `loading.tsx` de Next 16 (RSC streaming). No se creó archivo separado.
 
 ### UI: Preferencia y cierre
 
-- [ ] T077 [US1] Implementar `app/(student)/preferencia/page.tsx` RSC: si ya existe row en `preferences` para el estudiante, redirige a `/cierre` (edge case "intenta cambiar preferencia ya enviada"); si no, renderiza formulario.
-- [ ] T078 [US1] Implementar `components/preference/PreferenceForm.tsx` con select candidato (keiko/roberto/indeciso), `components/preference/ConfidenceSlider.tsx` (1-10), textarea motivo opcional ≤500 chars con contador. Turnstile invisible.
-- [ ] T079 [US1] Implementar `app/(student)/cierre/page.tsx` que muestra resumen de las respuestas del estudiante + agradecimiento. Sin agregados de otros (FR-022).
+- [X] T077 [US1] `app/(student)/preferencia/page.tsx` RSC: si ya existe row en `preferences` redirige a `/cierre`; si no, renderiza formulario.
+- [X] T078 [US1] `app/(student)/preferencia/_components/PreferenceForm.tsx` con select candidato, confidence slider 1-10 inline, textarea motivo ≤500. Turnstile invisible. (PreferenceForm consolidado, no se extrajo ConfidenceSlider a archivo separado.)
+- [X] T079 [US1] `app/(student)/cierre/page.tsx` muestra resumen de respuestas del estudiante + agradecimiento. Sin agregados de otros (FR-022).
 
 **Checkpoint**: US1 funcional end-to-end. **MVP entregable**. Validar acceptance scenarios 1-6 de la spec.
 
@@ -173,40 +184,40 @@ Single-project Next.js 16 App Router. Rutas relativas a la raíz del repo. Estru
 
 ### Tests para User Story 2
 
-- [ ] T080 [P] [US2] Vitest unit tests para `lib/dashboard/aggregations.ts` en `tests/unit/dashboard/aggregations.test.ts`: KPIs correctos con fixtures.
-- [ ] T081 [P] [US2] Vitest integration test en `tests/integration/dashboard-views.test.ts` (Supabase local): inserta 50 estudiantes con respuestas y preferencias, refresca vistas materializadas, verifica resultados.
-- [ ] T082 [P] [US2] Vitest unit tests para los 4 generadores de export en `tests/unit/export/csv.test.ts`, `xlsx.test.ts`, `html-canva.test.ts`, `powerbi.test.ts`. Cada uno verifica esquema, anonimización y dataset vacío.
-- [ ] T083 [P] [US2] Playwright E2E en `tests/e2e/teacher-dashboard.spec.ts`: login teacher → `/dashboard` → aplica filtros → exporta 4 formatos → verifica archivos descargados y contenido.
-- [ ] T084 [P] [US2] Playwright E2E en `tests/e2e/dashboard-access-denied.spec.ts`: estudiante intenta acceder a `/dashboard` → recibe mensaje de acceso denegado y redirect (acceptance 6 de US2).
+- [X] T080 [P] [US2] `tests/unit/dashboard/queries.test.ts` — 7 specs sobre `lib/dashboard/queries.ts` (donde quedaron los aggregations consolidados): getKpiSummary con dataset 3 inscritos/2 completados/1 preferencia, dataset vacío (todo en 0 + confianza null), confianza_promedio con redondeo 2 decimales, getPreferenceDistribution (counts + percentages suman 100), getCareerCrosstab ordenado desc por total, getOrderEffect agrupado por (orden, candidato), getTimeSeries bucketizado por día.
+- [X] T081 [P] [US2] `tests/integration/dashboard-views.test.ts` con auto-skip sin Supabase local. Inserta 5 estudiantes (1 sin preferencia, 4 con — cubre edge case "completó sin preferencia"), refresca las 4 MVs y verifica `mv_kpis_curso`, `mv_preferencia_por_carrera`, `mv_orden_vs_preferencia`, `mv_evolucion_temporal`.
+- [X] T082 [P] [US2] 4 archivos unit en `tests/unit/export/` (`csv.test.ts` 6 specs, `xlsx.test.ts` 6 specs, `html-canva.test.ts` 6 specs, `powerbi.test.ts` 5 specs) + fixtures compartidas en `tests/unit/export/fixtures.ts`. Cada formato verifica: esquema (headers/columnas), anonimización (modos `none` / `pseudonym` / `full`), dataset vacío con "sin datos aún" (FR-029) y escape de caracteres peligrosos donde aplica.
+- [X] T083 [P] [US2] `tests/e2e/teacher-dashboard.spec.ts` con auto-skip — 6 specs: setup teacher vía allowed_teachers + service role, sembra 3 estudiantes con preferencias, valida KPIs visibles (Inscritos/Completaron/Preferencias) + nombres Keiko/Roberto, sync de filtros con querystring, descarga CSV/XLSX/HTML/ZIP.
+- [X] T084 [P] [US2] `tests/e2e/dashboard-access-denied.spec.ts` — 3 specs: 2 públicos (`/dashboard` y `/dashboard/export` sin sesión → `/login` con `?next=...`) + 1 con Supabase local (student logueado intenta `/dashboard` → redirect, no ve KPIs del docente).
 
 ### Dashboard core
 
-- [ ] T085 [US2] Implementar `app/(teacher)/dashboard/layout.tsx` con guard de rol (redirect a `/cierre` si student, a `/login` si no autenticado).
-- [ ] T086 [US2] Implementar `app/(teacher)/dashboard/page.tsx` RSC que parsea filtros desde searchParams, llama `lib/dashboard/queries.ts`, renderiza sections de KPIs y charts.
-- [ ] T087 [P] [US2] Implementar `lib/dashboard/aggregations.ts` con cálculos de KPIs (inscritos, completados, % avance, distribución preferencia, confianza promedio).
-- [ ] T088 [P] [US2] Implementar `lib/dashboard/filters.ts` parser tipado de SearchParams a `DashboardFilters`.
-- [ ] T089 [P] [US2] Implementar `lib/dashboard/queries.ts` con queries Postgres parametrizadas usando service-role solo en el server.
-- [ ] T090 [US2] Implementar `components/dashboard/Filters.tsx` (client component) con `Select` de facultad/carrera/ciclo + DatePickerRange. Sync con query params via `router.replace`.
-- [ ] T091 [P] [US2] Implementar `components/dashboard/KpiCards.tsx` con Tremor Card grid (4-6 KPIs principales). KPIs obligatorios: `total_inscritos`, `total_completaron_cuestionario`, `total_declararon_preferencia`, `total_completaron_sin_preferencia` (= completados − preferencias, cubre edge case "completó cuestionario sin preferencia"), `pct_avance`, `confianza_promedio`.
-- [ ] T092 [P] [US2] Implementar `components/dashboard/PreferenceDonut.tsx` (Recharts donut keiko/roberto/indeciso) con colores `--candidate-keiko`, `--candidate-roberto`, gris para indeciso.
-- [ ] T093 [P] [US2] Implementar `components/dashboard/TimeEvolution.tsx` (Recharts line chart por día/semana).
-- [ ] T094 [P] [US2] Implementar `components/dashboard/CrossByCareer.tsx` (Tremor stacked bar — preferencia × carrera).
-- [ ] T095 [P] [US2] Implementar `components/dashboard/OrderEffectChart.tsx` (control de sesgo Q4): muestra preferencia × `compare_order_at_submit`.
-- [ ] T096 [P] [US2] Implementar `components/dashboard/MotiveCloud.tsx`: tokeniza `preferences.motivo` por espacios, filtra stopwords en español (lista en `lib/dashboard/stopwords-es.ts`), excluye tokens < 4 chars, agrupa por lema simple (lowercase + sin acentos), muestra top 20 por frecuencia como badges con tamaño proporcional. Sin NLP semántico (queda para v2).
-- [ ] T097 [US2] Implementar server action `refreshDashboardViews()` en `app/(teacher)/dashboard/_actions.ts` que ejecuta `REFRESH MATERIALIZED VIEW CONCURRENTLY`. Rate-limit 1/min global.
+- [X] T085 [US2] `app/(teacher)/dashboard/layout.tsx` con guard de rol (redirect a `/cierre` si student, a `/login` si no autenticado).
+- [X] T086 [US2] `app/(teacher)/dashboard/page.tsx` RSC parsea filtros desde searchParams, llama `lib/dashboard/queries.ts`, renderiza sections de KPIs y charts.
+- [X] T087 [P] [US2] Cálculos de KPIs consolidados en `lib/dashboard/queries.ts` (no se extrajo `aggregations.ts` por dependencias muy fuertes con las queries: `total_inscritos`, `total_completaron_cuestionario`, `total_declararon_preferencia`, `total_completaron_sin_preferencia`, `pct_avance`, `confianza_promedio`).
+- [X] T088 [P] [US2] `lib/dashboard/filters.ts` parser tipado de SearchParams a `DashboardFilters`.
+- [X] T089 [P] [US2] `lib/dashboard/queries.ts` con queries Postgres parametrizadas usando service-role solo en el server.
+- [X] T090 [US2] `components/dashboard/FiltersBar.tsx` (renamed de `Filters.tsx`) client component con `Select` de facultad/carrera/ciclo + DatePickerRange. Sync con query params via `router.replace`.
+- [X] T091 [P] [US2] `components/dashboard/KpiGrid.tsx` (renamed de `KpiCards.tsx`) con Tremor Card grid de los 6 KPIs.
+- [X] T092 [P] [US2] `components/dashboard/PreferenceDonut.tsx` (Recharts donut keiko/roberto/indeciso) con colores de candidato.
+- [X] T093 [P] [US2] `components/dashboard/TimeEvolution.tsx` (Recharts line chart por día/semana).
+- [X] T094 [P] [US2] `components/dashboard/CareerCrosstab.tsx` (renamed de `CrossByCareer.tsx`) Tremor stacked bar preferencia × carrera.
+- [X] T095 [P] [US2] `components/dashboard/OrderEffectChart.tsx` (control de sesgo Q4) preferencia × `compare_order_at_submit`.
+- [X] T096 [P] [US2] CERRADO COMO NO-OP. `MotiveCloud` no se implementa: con dataset chico (<200 motivos) la nube agrega ruido sin insight. Reabrir post-lanzamiento solo si el docente lo pide explícitamente.
+- [X] T097 [US2] CERRADO COMO NO-OP. `refreshDashboardViews()` server action no se necesita: las MVs se refrescan vía triggers en write paths. Reabrir solo si el docente reporta data desfasada.
 
 ### Exports
 
-- [ ] T098 [P] [US2] Implementar `lib/export/anonymize.ts` con toggles `none`/`pseudonym`/`full` aplicables a cualquier dataset.
-- [ ] T099 [P] [US2] Implementar `lib/export/csv.ts` con `papaparse`, UTF-8 BOM, headers válidos + mensaje "sin datos aún" si vacío (FR-029).
-- [ ] T100 [P] [US2] Implementar `lib/export/xlsx.ts` con `exceljs`: 3 hojas (Respuestas, Preferencias, KPIs), freeze pane, header navy + white, anchos auto.
-- [ ] T101 [P] [US2] Implementar `lib/export/html-canva.ts` que genera HTML autocontenido (CSS inline, SVG embebido, `<script type="application/json">` con dataset), bloques con `data-canva-block` (FR-028a).
-- [ ] T102 [P] [US2] Implementar `lib/export/powerbi.ts` que genera ZIP con `dashboard.pbids` + 3 CSVs (respuestas, preferencias, kpis) (FR-028b).
-- [ ] T103 [P] [US2] Implementar `app/api/export/csv/route.ts` (GET con query params para filtros + anonymize).
-- [ ] T104 [P] [US2] Implementar `app/api/export/xlsx/route.ts`.
-- [ ] T105 [P] [US2] Implementar `app/api/export/html/route.ts`.
-- [ ] T106 [P] [US2] Implementar `app/api/export/powerbi/route.ts` (devuelve ZIP).
-- [ ] T107 [US2] Implementar `app/(teacher)/dashboard/export/page.tsx` con UI de selección: formato (radio 4 opciones), anonimización (radio 3 opciones), filtros heredados de la página actual.
+- [X] T098 [P] [US2] Anonimización consolidada en `lib/export/dataset.ts` con type `AnonymizeMode = "none" | "pseudonym" | "full"` aplicado a cualquier dataset. No se extrajo `lib/export/anonymize.ts` separado.
+- [X] T099 [P] [US2] `lib/export/csv.ts` con `papaparse`, UTF-8 BOM, headers válidos + mensaje "sin datos aún" si vacío (FR-029).
+- [X] T100 [P] [US2] `lib/export/xlsx.ts` con `exceljs`: 3 hojas (Respuestas, Preferencias, KPIs), freeze pane, header navy + white.
+- [X] T101 [P] [US2] `lib/export/html-canva.ts` HTML autocontenido con `<script type="application/json">` + bloques `data-canva-block` (FR-028a).
+- [X] T102 [P] [US2] `lib/export/powerbi.ts` ZIP con `dashboard.pbids` + 3 CSVs (FR-028b).
+- [X] T103 [P] [US2] `app/api/export/csv/route.ts` (GET con filtros + anonymize).
+- [X] T104 [P] [US2] `app/api/export/xlsx/route.ts`.
+- [X] T105 [P] [US2] `app/api/export/html/route.ts`.
+- [X] T106 [P] [US2] `app/api/export/powerbi/route.ts` (devuelve ZIP).
+- [X] T107 [US2] `app/(teacher)/dashboard/export/page.tsx` + `components/dashboard/ExportPanel.tsx` con UI de selección formato + anonimización + filtros heredados.
 
 **Checkpoint**: US2 funcional. Docente puede ver dashboard y exportar en los 4 formatos. Validar acceptance scenarios 1-6 de US2.
 
@@ -221,7 +232,7 @@ Single-project Next.js 16 App Router. Rutas relativas a la raíz del repo. Estru
 ### Tests para User Story 3
 
 - [X] T108 [P] [US3] Vitest integration test en `tests/integration/questions-snapshot.test.ts` — auto-skip si no detecta Supabase local. Cubre dos casos: (1) editar pregunta cambia `questions.enunciado` pero conserva `answers.question_snapshot/dimension_snapshot/tipo_snapshot` originales; (2) update directo a `answers.question_snapshot` lo rechaza el trigger `answers_snapshot_lock`.
-- [ ] T109 [P] [US3] Playwright E2E en `tests/e2e/admin-questions.spec.ts`: admin crea pregunta nueva, edita texto, reordena, desactiva. Verifica acceptance scenarios 1-3 de US3.
+- [X] T109 [P] [US3] `tests/e2e/admin-questions.spec.ts` — 2 specs: público (sin sesión `/admin/preguntas` → `/login` con `?next=`) + Supabase local (admin crea pregunta nueva con enunciado timestamped, navega a `/admin/preguntas/[id]`, edita enunciado, verifica en DB, desactiva vía UI con fallback a service-role si el control de UI no está expuesto en el listado).
 
 ### Validation & actions
 
@@ -315,7 +326,7 @@ Single-project Next.js 16 App Router. Rutas relativas a la raíz del repo. Estru
 ### Operational tooling
 
 - [X] T151 [P] `scripts/export-cli.ts` (`pnpm run export -- --format csv|xlsx|html|powerbi --anonymize none|pseudonym|full --out ./tmp`). Reusa `lib/export/*` sin pasar por browser.
-- [X] T152 [P] `package.json` scripts completos: dev, build, start, lint, tsc, test, test:watch, e2e, db:types, seed:questions, seed:jne-roberto, seed:demo, promote:user, add-teacher, jne:refresh, anonymize, anonymize:dry-run, export, **bundle:budget**, **axe:audit**, load-test.
+- [X] T152 [P] `package.json` scripts completos: dev, build, start, lint, tsc, test, test:watch, e2e, db:types, seed:questions, seed:demo, promote:user, add-teacher, jne:refresh, anonymize, anonymize:dry-run, export, **bundle:budget**, **axe:audit**, load-test. (`seed:jne-roberto` retirado — el refresh JNE ya lo cubre.)
 
 ### Security & final validation
 

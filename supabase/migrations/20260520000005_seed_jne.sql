@@ -155,11 +155,10 @@ VALUES
 
 -- ----------------------------------------------------------------------------
 -- Plan dimensions — Roberto (idPlanGobierno = 29688)
--- Las 4 dimensiones se cargan desde data/jne/raw/roberto-jpp-plan-detalle.json
--- en un script de seed Node (scripts/seed-jne-roberto.ts) que se ejecuta tras
--- aplicar las migraciones, porque el contenido completo del JSON no cabe
--- legiblemente inline acá. La fila placeholder garantiza que el comparador
--- nunca rompa por falta del registro.
+-- Las 4 dimensiones se pueblan en runtime vía `pnpm run jne:refresh` (script
+-- `scripts/run-jne-refresh.ts`) o el cron `/api/cron/jne-refresh`, ambos
+-- consumiendo `lib/jne/refresh.ts`. La fila placeholder garantiza que el
+-- render del comparador nunca rompa por falta del registro.
 -- ----------------------------------------------------------------------------
 
 INSERT INTO public.plan_dimensions (plan_id, dimension, problema, objetivo, indicador, meta, raw_json, last_synced_at)

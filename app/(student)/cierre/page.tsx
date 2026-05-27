@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { BrandBar, BrandMark } from "@/components/brand/BrandMark";
+import { SignOutLink } from "@/components/brand/SignOutLink";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Gracias" };
@@ -16,6 +19,24 @@ const CANDIDATO_COLOR: Record<string, string> = {
   keiko: "var(--color-candidate-keiko)",
   roberto: "var(--color-candidate-roberto)",
   indeciso: "var(--color-graphite)",
+};
+
+const CANDIDATO_PARTIDO: Record<string, string> = {
+  keiko: "Fuerza Popular",
+  roberto: "Juntos por el Perú",
+  indeciso: "Sin decisión",
+};
+
+const CANDIDATO_PHOTO: Record<string, string | null> = {
+  keiko: "/candidates/keiko-fujimori.webp",
+  roberto: "/candidates/roberto-sanchez.webp",
+  indeciso: null,
+};
+
+const CANDIDATO_LOGO: Record<string, { src: string; isSvg: boolean } | null> = {
+  keiko: { src: "/parties/fuerza-popular.webp", isSvg: false },
+  roberto: { src: "/parties/juntos-por-el-peru.svg", isSvg: true },
+  indeciso: null,
 };
 
 export default async function CierrePage() {
@@ -50,14 +71,15 @@ export default async function CierrePage() {
       <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-3">
-            <span className="block h-6 w-1 bg-[var(--color-navy-upao)]" aria-hidden />
-            <p className="font-mono text-[0.7rem] uppercase tracking-[0.2em] text-[var(--color-graphite)]">
-              UPAO · Voto Informado
-            </p>
+            <BrandBar />
+            <BrandMark context="Voto Informado e Instruido" />
           </Link>
-          <p className="font-mono text-[0.7rem] uppercase tracking-[0.2em] text-[var(--color-mint-success)]">
-            Completado
-          </p>
+          <div className="flex items-center gap-5">
+            <p className="font-mono text-[0.7rem] uppercase tracking-[0.2em] text-[var(--color-mint-success)]">
+              Completado
+            </p>
+            <SignOutLink />
+          </div>
         </div>
       </header>
 
@@ -88,10 +110,12 @@ export default async function CierrePage() {
               accent="var(--color-navy-upao)"
               mono
             />
-            <Stat
-              kicker="Preferencia"
-              label="Tu candidato/a"
-              value={CANDIDATO_LABEL[pref.candidato_preferido] ?? "—"}
+            <PreferenceCard
+              candidate={pref.candidato_preferido}
+              label={CANDIDATO_LABEL[pref.candidato_preferido] ?? "—"}
+              partido={CANDIDATO_PARTIDO[pref.candidato_preferido] ?? "Tu candidato/a"}
+              photo={CANDIDATO_PHOTO[pref.candidato_preferido] ?? null}
+              logo={CANDIDATO_LOGO[pref.candidato_preferido] ?? null}
               accent={candColor}
             />
             <Stat
@@ -105,21 +129,6 @@ export default async function CierrePage() {
         </div>
       </section>
 
-      <section className="border-t border-[var(--color-border)] py-16">
-        <div className="mx-auto max-w-4xl px-6">
-          <div className="space-y-6 rounded-2xl border-l-2 border-[var(--color-cyan-deep)] bg-[var(--color-surface)] p-8 shadow-[var(--shadow-soft)]">
-            <p className="editorial-kicker">Tus derechos</p>
-            <p className="text-base leading-relaxed text-[var(--color-foreground)]">
-              Puedes solicitar el borrado completo de tus datos personales en cualquier momento.
-              Tus respuestas se conservarán de forma anónima para el análisis pedagógico.
-            </p>
-            <p className="text-sm text-[var(--color-muted-foreground)]">
-              Si tienes dudas sobre el estudio o el manejo de tus datos, contacta al docente del
-              curso.
-            </p>
-          </div>
-        </div>
-      </section>
     </main>
   );
 }
@@ -153,6 +162,95 @@ function Stat({
         {value}
       </p>
       <p className="text-sm text-[var(--color-muted-foreground)]">{label}</p>
+    </article>
+  );
+}
+
+function PreferenceCard({
+  candidate,
+  label,
+  partido,
+  photo,
+  logo,
+  accent,
+}: {
+  candidate: string;
+  label: string;
+  partido: string;
+  photo: string | null;
+  logo: { src: string; isSvg: boolean } | null;
+  accent: string;
+}) {
+  return (
+    <article className="space-y-4 bg-[var(--color-surface)] p-8">
+      <p
+        className="font-mono text-[0.65rem] uppercase tracking-[0.2em]"
+        style={{ color: accent }}
+      >
+        Tu decisión
+      </p>
+
+      {photo ? (
+        <div
+          className="relative h-16 w-16 overflow-hidden rounded-full ring-2 ring-white"
+          style={{ backgroundColor: `color-mix(in oklch, ${accent} 18%, white)` }}
+        >
+          <Image
+            src={photo}
+            alt={`Foto oficial de ${label}`}
+            fill
+            sizes="64px"
+            className="scale-[1.35] object-cover object-[50%_28%]"
+            unoptimized
+          />
+        </div>
+      ) : (
+        <div
+          className="flex h-16 w-16 items-center justify-center rounded-full font-mono text-2xl font-bold text-white"
+          style={{ backgroundColor: accent }}
+          aria-hidden
+        >
+          ?
+        </div>
+      )}
+
+      <p
+        className="font-display text-[clamp(1.5rem,3vw,2.25rem)] font-medium leading-tight"
+        style={{ color: accent }}
+      >
+        {label}
+      </p>
+
+      <div className="flex items-center gap-2">
+        {logo ? (
+          <span className="relative inline-block h-4 w-4 shrink-0">
+            {logo.isSvg ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={logo.src}
+                alt=""
+                aria-hidden
+                className="h-full w-full object-contain"
+              />
+            ) : (
+              <Image
+                src={logo.src}
+                alt=""
+                aria-hidden
+                fill
+                sizes="16px"
+                className="object-contain"
+                unoptimized
+              />
+            )}
+          </span>
+        ) : null}
+        <p
+          className={`truncate ${candidate === "indeciso" ? "text-xs italic text-[var(--color-muted-foreground)]" : "text-xs uppercase tracking-widest text-[var(--color-muted-foreground)]"}`}
+        >
+          {partido}
+        </p>
+      </div>
     </article>
   );
 }

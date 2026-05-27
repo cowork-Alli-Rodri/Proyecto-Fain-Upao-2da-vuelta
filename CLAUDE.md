@@ -10,7 +10,7 @@ in `specs/001-voto-informado-upao/plan.md`.
 
 Webapp interactiva para estudiantes de pregrado de la **Universidad Privada Antenor Orrego (UPAO, Trujillo, Perú)**. La plataforma:
 
-1. Permite que cada estudiante se registre vía **OAuth (Google + Microsoft + email-password fallback)**.
+1. Permite que cada estudiante se registre vía **OAuth Google + email-password fallback** (Microsoft OAuth fue descartado del piloto — quien tenga correo institucional MS se registra manualmente vía email).
 2. Completa un **cuestionario estructurado** sobre temas de política nacional.
 3. Usa un **módulo comparador** entre las propuestas de los dos finalistas de la **Segunda Vuelta Electoral 2026 (Perú)**: **Keiko Fujimori (Fuerza Popular)** vs **Roberto Sánchez (Juntos por el Perú)**.
 4. Captura y agrega preferencias declaradas para análisis posterior por el docente, vía **subcarpeta `/dashboard`** protegida por rol.
@@ -26,7 +26,7 @@ Los datos del comparador provienen de la API REST oficial del JNE (`https://web.
 - **Lucide React** (iconos)
 - **Tremor 3.x** + **Recharts** (dashboard)
 - **Supabase**: Postgres 16 + Auth + RLS + Storage + Realtime
-- **Auth providers**: Google + Microsoft (Azure AD) + Email-password
+- **Auth providers**: Google OAuth + Email-password (Microsoft OAuth descartado)
 - **Upstash Redis** (rate limiting) + **Cloudflare Turnstile** (anti-bot invisible)
 - **React Hook Form** + **Zod** (validación)
 - **TanStack Query v5** (solo donde RSC no alcance)

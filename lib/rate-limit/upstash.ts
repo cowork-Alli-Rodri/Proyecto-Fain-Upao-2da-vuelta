@@ -33,7 +33,9 @@ export function getRateLimiter(): Ratelimit | null {
 
   cachedLimiter = new Ratelimit({
     redis,
-    limiter: Ratelimit.slidingWindow(5, "1 m"),
+    // 60 req/min: cubre autosave (~85 saves/min máximo teórico con debounce 700ms)
+    // sin permitir spam masivo. Para acciones únicas (submit, login) sobra.
+    limiter: Ratelimit.slidingWindow(60, "1 m"),
     analytics: true,
     prefix: "voto-upao",
   });

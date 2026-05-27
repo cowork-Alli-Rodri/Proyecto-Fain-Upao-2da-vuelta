@@ -1,4 +1,4 @@
-import type { ExportDataset } from "./dataset";
+import { pivotAnswersByStudent, type ExportDataset } from "./dataset";
 
 function escapeHtml(s: string): string {
   return s
@@ -17,13 +17,50 @@ function escapeHtml(s: string): string {
  */
 export function exportHtmlCanva(ds: ExportDataset): string {
   const total_inscritos = ds.profiles.length;
-  const total_completados = ds.profiles.filter((p) => p.questionnaire_completed_at).length;
+  const total_pre = ds.profiles.filter((p) => p.questionnaire_pre_completed_at).length;
+  const total_cand = ds.profiles.filter((p) => p.candidatos_completed_at).length;
+  const total_post = ds.profiles.filter((p) => p.questionnaire_post_completed_at).length;
+  const total_completados = total_post;
   const total_preferencias = ds.preferences.length;
   const sin_preferencia = Math.max(0, total_completados - total_preferencias);
   const confianzaProm =
     ds.preferences.length > 0
       ? (ds.preferences.reduce((a, b) => a + b.confianza, 0) / ds.preferences.length).toFixed(2)
       : "—";
+
+  // Cambio de opinión por dimensión
+  const pivoted = pivotAnswersByStudent(ds.answers);
+  const dimensionStats = new Map<
+    string,
+    { sumDelta: number; n: number; changed: Set<string> }
+  >();
+  let studentsWithBoth = 0;
+  let studentsChanged = 0;
+  for (const [pseudo, byQ] of pivoted.entries()) {
+    let hasBoth = false;
+    let hasChange = false;
+    for (const cell of byQ.values()) {
+      if (cell.delta !== null && cell.dimension_cuestionario_snapshot) {
+        const dim = cell.dimension_cuestionario_snapshot;
+        const stat = dimensionStats.get(dim) ?? {
+          sumDelta: 0,
+          n: 0,
+          changed: new Set<string>(),
+        };
+        stat.sumDelta += cell.delta;
+        stat.n += 1;
+        if (cell.delta !== 0) stat.changed.add(pseudo);
+        dimensionStats.set(dim, stat);
+        hasBoth = true;
+        if (cell.delta !== 0) hasChange = true;
+      }
+    }
+    if (hasBoth) studentsWithBoth++;
+    if (hasChange) studentsChanged++;
+  }
+  const opinionChangeRate = studentsWithBoth > 0
+    ? Math.round((studentsChanged / studentsWithBoth) * 1000) / 10
+    : 0;
 
   const distribution = (["keiko", "roberto", "indeciso"] as const).map((c) => {
     const n = ds.preferences.filter((p) => p.candidato_preferido === c).length;
@@ -45,6 +82,13 @@ export function exportHtmlCanva(ds: ExportDataset): string {
     .sort((a, b) => b[1].total - a[1].total)
     .slice(0, 10);
 
+  const dimensionRows = Array.from(dimensionStats.entries()).map(([dim, s]) => ({
+    dimension: dim,
+    avg_delta: Math.round((s.sumDelta / s.n) * 100) / 100,
+    n_changed: s.changed.size,
+    n_total: s.n,
+  }));
+
   const dataPayload = {
     generatedAt: ds.generatedAt,
     filters: ds.filters,
@@ -53,13 +97,28 @@ export function exportHtmlCanva(ds: ExportDataset): string {
     carreras: Object.fromEntries(carreraStats.entries()),
     preferences: ds.preferences.length,
     respuestas: ds.answers.length,
+    pivote_v2: {
+      total_pre,
+      total_cand,
+      total_post,
+      opinion_change_rate_pct: opinionChangeRate,
+      por_dimension: dimensionRows,
+    },
+  };
+
+  const DIM_LABEL: Record<string, string> = {
+    educacion: "Educación",
+    juventud: "Juventud",
+    trabajo: "Trabajo",
+    economia: "Economía",
+    social_publicas: "Políticas públicas",
   };
 
   return `<!DOCTYPE html>
 <html lang="es-PE">
 <head>
 <meta charset="utf-8">
-<title>Dashboard · Voto Informado UPAO · ${escapeHtml(ds.generatedAt)}</title>
+<title>Dashboard · Voto Informado e Instruido · FAIN-UPAO · ${escapeHtml(ds.generatedAt)}</title>
 <style>
   :root {
     --navy: #002855;
@@ -100,7 +159,7 @@ export function exportHtmlCanva(ds: ExportDataset): string {
 <body>
 <main class="wrap">
   <header data-canva-block="title">
-    <p class="kicker">Dashboard · Voto Informado UPAO · Segunda Vuelta 2026</p>
+    <p class="kicker">Dashboard · Voto Informado e Instruido · FAIN-UPAO · Segunda Vuelta 2026</p>
     <div class="rule"></div>
     <h1>Resumen del grupo</h1>
     <p>Generado el ${escapeHtml(new Date(ds.generatedAt).toLocaleString("es-PE"))} · Anonimización: ${escapeHtml(ds.anonymize)}</p>
@@ -110,11 +169,33 @@ export function exportHtmlCanva(ds: ExportDataset): string {
     <p class="kicker">Indicadores clave</p>
     <div class="kpis">
       <div class="kpi"><p class="kpi-label">Inscritos</p><p class="kpi-value">${total_inscritos}</p></div>
-      <div class="kpi"><p class="kpi-label">Completaron cuestionario</p><p class="kpi-value">${total_completados}</p></div>
+      <div class="kpi"><p class="kpi-label">Completaron PRE</p><p class="kpi-value">${total_pre}</p></div>
+      <div class="kpi"><p class="kpi-label">Revisaron candidatos</p><p class="kpi-value">${total_cand}</p></div>
+      <div class="kpi"><p class="kpi-label">Completaron POST</p><p class="kpi-value">${total_post}</p></div>
+      <div class="kpi"><p class="kpi-label">Cambio de opinión</p><p class="kpi-value">${opinionChangeRate}%</p></div>
       <div class="kpi"><p class="kpi-label">Declararon preferencia</p><p class="kpi-value">${total_preferencias}</p></div>
       <div class="kpi"><p class="kpi-label">Sin preferencia</p><p class="kpi-value">${sin_preferencia}</p></div>
       <div class="kpi"><p class="kpi-label">Confianza promedio</p><p class="kpi-value">${confianzaProm}</p></div>
       <div class="kpi"><p class="kpi-label">Tasa de avance</p><p class="kpi-value">${total_inscritos > 0 ? Math.round((total_completados / total_inscritos) * 100) : 0}%</p></div>
+    </div>
+  </section>
+
+  <section data-canva-block="cambio-opinion">
+    <h2>Cambio de opinión por dimensión</h2>
+    <div class="bars">
+      ${
+        dimensionRows.length === 0
+          ? '<p style="color:var(--smoke);">Sin pares pre/post aún.</p>'
+          : dimensionRows
+              .map(
+                (d) => `
+        <div class="bar-row">
+          <span class="bar-name">${escapeHtml(DIM_LABEL[d.dimension] ?? d.dimension)}</span>
+          <span class="bar-count" style="width:auto;">Δ ${d.avg_delta > 0 ? "+" : ""}${d.avg_delta} · ${d.n_changed}/${d.n_total} cambiaron</span>
+        </div>`,
+              )
+              .join("")
+      }
     </div>
   </section>
 
@@ -167,7 +248,7 @@ export function exportHtmlCanva(ds: ExportDataset): string {
   </section>
 
   <footer>
-    <p>Datos del Jurado Nacional de Elecciones (JNE) · Voto Informado UPAO · ${escapeHtml(ds.generatedAt)}</p>
+    <p>Datos del Jurado Nacional de Elecciones (JNE) · Voto Informado e Instruido · FAIN-UPAO · ${escapeHtml(ds.generatedAt)}</p>
     <p>Esta plataforma no emite recomendaciones de voto. Análisis pedagógico del docente.</p>
   </footer>
 </main>

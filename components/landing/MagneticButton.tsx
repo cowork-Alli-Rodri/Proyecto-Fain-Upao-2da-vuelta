@@ -13,7 +13,7 @@ import { usePointerFineNoMotion } from "@/lib/hooks/usePointerFineNoMotion";
 interface MagneticButtonProps {
   href: string;
   children: React.ReactNode;
-  variant?: "primary" | "outline";
+  variant?: "primary" | "outline" | "onDark";
   className?: string;
 }
 
@@ -67,7 +67,9 @@ export function MagneticButton({
   const baseClass =
     variant === "primary"
       ? "inline-flex min-h-[48px] items-center justify-center rounded-full bg-[var(--color-navy-upao)] px-7 py-3 text-sm font-medium text-white shadow-[0_8px_24px_-12px_var(--color-navy-deep)] transition-colors hover:bg-[var(--color-navy-deep)] sm:text-base"
-      : "inline-flex min-h-[48px] items-center justify-center rounded-full border border-[var(--color-navy-upao)] px-6 py-3 text-sm font-medium text-[var(--color-navy-upao)] transition-colors hover:bg-[var(--color-navy-upao)] hover:text-white sm:text-base";
+      : variant === "onDark"
+        ? "inline-flex min-h-[48px] items-center justify-center rounded-full bg-white px-7 py-3 text-sm font-medium text-[var(--color-navy-upao)] shadow-[0_8px_24px_-12px_rgba(0,0,0,0.4)] transition-colors hover:bg-[var(--color-orange-upao)] hover:text-white sm:text-base"
+        : "inline-flex min-h-[48px] items-center justify-center rounded-full border border-[var(--color-navy-upao)] px-6 py-3 text-sm font-medium text-[var(--color-navy-upao)] transition-colors hover:bg-[var(--color-navy-upao)] hover:text-white sm:text-base";
 
   return (
     <Link

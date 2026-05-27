@@ -10,7 +10,7 @@ import { getJneFreshness, listJneRefreshLog } from "@/lib/jne/cache";
 export const metadata: Metadata = { title: "JNE · Admin" };
 
 const TRIGGER_LABEL: Record<string, string> = {
-  cron: "Cron 24h",
+  cron: "Automático",
   admin: "Manual",
 };
 
@@ -45,7 +45,7 @@ export default async function AdminJnePage() {
     <AdminShell
       kicker="Mantenimiento JNE"
       title="Sincronización con el Jurado Nacional de Elecciones"
-      description="El cron diario (04:00 UTC) refresca los planes de gobierno. Si el JNE devuelve un error o cambia el esquema, no se sobreescribe la copia válida en DB."
+      description="Los planes de gobierno se actualizan automáticamente cada día. Si el JNE no responde, los estudiantes siguen viendo la última versión válida."
       actions={<JneRefreshPanel />}
     >
       <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
@@ -83,11 +83,14 @@ export default async function AdminJnePage() {
 
         {logEntries.length === 0 ? (
           <p className="rounded-md border border-dashed border-[var(--color-border)] px-4 py-6 text-sm text-[var(--color-muted-foreground)]">
-            Aún no hay registros. Ejecuta un refresh manual o espera el primer
-            disparo del cron.
+            Aún no hay registros. Usa el botón Refrescar ahora o espera la
+            primera actualización automática.
           </p>
         ) : (
-          <div className="overflow-x-auto rounded-md border border-[var(--color-border)] bg-[var(--color-surface)]">
+          <div
+            data-lenis-prevent
+            className="overflow-x-auto rounded-md border border-[var(--color-border)] bg-[var(--color-surface)]"
+          >
             <table className="w-full text-sm">
               <thead className="border-b border-[var(--color-border)] bg-[var(--color-paper)]/60">
                 <tr className="text-left font-mono text-[0.65rem] uppercase tracking-[0.18em] text-[var(--color-graphite)]">
@@ -104,7 +107,12 @@ export default async function AdminJnePage() {
                 {logEntries.map((row) => {
                   const finished = row.finished_at ? new Date(row.finished_at) : null;
                   const started = new Date(row.started_at);
-                  const durationMs = finished ? finished.getTime() - started.getTime() : null;
+                  // Math.abs porque el reloj de Postgres (started_at via NOW())
+                  // y el reloj de Node (finished_at via Date.now().toISOString())
+                  // tienen skew de hasta unos segundos.
+                  const durationMs = finished
+                    ? Math.abs(finished.getTime() - started.getTime())
+                    : null;
                   return (
                     <tr key={row.id} className="text-[var(--color-ink)]">
                       <td className="px-4 py-3 font-mono text-xs text-[var(--color-graphite)]">

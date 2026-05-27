@@ -91,6 +91,7 @@ const ENUNCIADO_EDITADO =
           question_snapshot: ENUNCIADO_ORIGINAL,
           dimension_snapshot: "social",
           tipo_snapshot: "likert",
+          momento_snapshot: "pre",
         })
         .select("id")
         .single();

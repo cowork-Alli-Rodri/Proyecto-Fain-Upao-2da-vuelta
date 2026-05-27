@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BrandBar, BrandMark } from "@/components/brand/BrandMark";
 import { MagneticButton } from "@/components/landing/MagneticButton";
 import { ParallaxAngel } from "@/components/motion/ParallaxAngel";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
@@ -8,16 +9,16 @@ import { ScrollProgress } from "@/components/motion/ScrollProgress";
 import { StickyStoryteller, type Step } from "@/components/landing/StickyStoryteller";
 
 export const metadata: Metadata = {
-  title: "Cómo funciona · Voto Informado UPAO",
+  title: "Cómo funciona",
   description:
-    "Cuatro pasos para comparar planes de gobierno con datos oficiales del JNE: identifícate, responde el cuestionario, explora el comparador simétrico y declara tu preferencia.",
+    "Cuatro pasos para analizar los planes oficiales del JNE y aprender a detectar información falsa antes de decidir: identifícate, responde, analiza y decide bien.",
 };
 
 const STEPS: Step[] = [
   {
     n: "01",
     kicker: "Identidad académica",
-    title: "Ingresas con tu cuenta UPAO o personal.",
+    title: "Ingresas con tu cuenta institucional o personal.",
     body: "OAuth con Google o Microsoft, o correo y contraseña como respaldo. Aceptas un consentimiento informado antes de cualquier captura de datos: tus respuestas pueden borrarse cuando lo pidas.",
   },
   {
@@ -28,15 +29,15 @@ const STEPS: Step[] = [
   },
   {
     n: "03",
-    kicker: "Comparador lado a lado",
-    title: "Lees el plan oficial de cada candidata o candidato sin parafraseo.",
+    kicker: "Analiza lado a lado",
+    title: "Lees el plan oficial de cada candidatura sin parafraseo.",
     body: "Texto literal del JNE, con tratamiento visual idéntico. El orden izquierda/derecha se asigna al azar la primera vez que entras y se mantiene para ti. Cuatro pestañas, cuatro dimensiones, sin ranking ni juicios.",
   },
   {
     n: "04",
-    kicker: "Preferencia declarada",
-    title: "Marcas tu preferencia con un nivel de confianza y un motivo opcional.",
-    body: "Tu preferencia es final dentro del ejercicio. No verás la de tus compañeros: la plataforma evita inducir tu voto con presión de pares. El docente solo ve agregados anónimos por carrera y ciclo.",
+    kicker: "Decide bien",
+    title: "Indicas tu decisión con un nivel de confianza y un motivo opcional.",
+    body: "Tu decisión es final dentro del ejercicio. No verás la de tus compañeros: la plataforma evita inducir tu voto con presión de pares. El docente solo ve agregados anónimos por carrera y ciclo.",
   },
 ];
 
@@ -48,13 +49,8 @@ export default function ComoFuncionaPage() {
         <header className="sticky top-0 z-40 border-b border-[var(--color-border)] bg-[var(--color-surface)]/90 backdrop-blur">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-4">
             <Link href="/" className="flex items-center gap-3">
-              <span
-                className="block h-7 w-1 bg-[var(--color-navy-upao)] sm:h-8"
-                aria-hidden
-              />
-              <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-[var(--color-graphite)] sm:text-[0.7rem] sm:tracking-[0.2em]">
-                UPAO · Voto Informado
-              </p>
+              <BrandBar className="h-7 sm:h-8" />
+              <BrandMark context="Voto Informado e Instruido" hideContextOnMobile />
             </Link>
             <Link
               href="/login"
@@ -100,6 +96,52 @@ export default function ComoFuncionaPage() {
         {/* STICKY STORYTELLING */}
         <StickyStoryteller steps={STEPS} />
 
+        {/* PRINCIPIOS éticos — qué no hacemos */}
+        <section className="bg-[var(--color-navy-upao)] py-14 text-white sm:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-12">
+              <ScrollReveal direction="right" className="lg:col-span-4">
+                <p className="editorial-kicker mb-2 text-[var(--color-cyan-electric)]">
+                  Nuestros compromisos
+                </p>
+                <h2 className="font-display text-[clamp(2rem,5vw,3rem)] font-medium leading-tight text-white">
+                  Qué{" "}
+                  <span className="italic text-[var(--color-orange-upao-soft)]">no</span>{" "}
+                  hacemos.
+                </h2>
+              </ScrollReveal>
+              <div className="space-y-7 lg:col-span-8 lg:space-y-8">
+                {[
+                  {
+                    kicker: "01",
+                    title: "No te decimos por quién votar",
+                    text: "Te mostramos las propuestas oficiales tal cual las presentaron al JNE. La conclusión es tuya, nunca nuestra.",
+                  },
+                  {
+                    kicker: "02",
+                    title: "No editamos el contenido",
+                    text: "Si el JNE no publica algún dato, lo decimos: «No declarado por el JNE». No inventamos ni rellenamos información.",
+                  },
+                  {
+                    kicker: "03",
+                    title: "No vendemos tus datos",
+                    text: "Tu nombre y correo se guardan hasta 12 meses después del cierre del curso. Pasado ese tiempo se borran sin posibilidad de recuperarlos.",
+                  },
+                  {
+                    kicker: "04",
+                    title: "No te mostramos lo que respondieron otros",
+                    text: "Tu opinión no se ve influida por la mayoría. Tomas tu decisión sin presión de pares.",
+                  },
+                ].map((p, i) => (
+                  <ScrollReveal key={p.kicker} direction="left" delay={i * 0.08}>
+                    <Principle {...p} />
+                  </ScrollReveal>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* CTA final */}
         <section className="border-t border-[var(--color-border)] py-16 sm:py-24">
           <div className="mx-auto max-w-3xl space-y-6 px-4 text-center sm:px-6">
@@ -125,5 +167,32 @@ export default function ComoFuncionaPage() {
         </section>
       </main>
     </>
+  );
+}
+
+function Principle({
+  kicker,
+  title,
+  text,
+}: {
+  kicker: string;
+  title: string;
+  text: string;
+}) {
+  const isOdd = kicker === "01" || kicker === "03";
+  const kickerColor = isOdd
+    ? "text-[var(--color-cyan-electric)]"
+    : "text-[var(--color-orange-upao-soft)]";
+
+  return (
+    <article className="grid grid-cols-12 gap-3 border-t border-white/15 pt-5 sm:gap-4 sm:pt-6">
+      <p className={`col-span-2 font-mono text-xs tracking-widest ${kickerColor}`}>
+        {kicker}
+      </p>
+      <div className="col-span-10 space-y-2">
+        <h3 className="font-display text-xl leading-tight text-white sm:text-2xl">{title}</h3>
+        <p className="text-sm leading-relaxed text-white/80">{text}</p>
+      </div>
+    </article>
   );
 }

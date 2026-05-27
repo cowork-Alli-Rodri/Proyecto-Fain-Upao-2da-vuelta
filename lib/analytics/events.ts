@@ -17,12 +17,6 @@ export const ANALYTICS_EVENTS = {
   QUESTIONNAIRE_STEP_ADVANCED: "questionnaire_step_advanced",
   QUESTIONNAIRE_COMPLETED: "questionnaire_completed",
 
-  // Comparator
-  COMPARATOR_VIEWED: "comparator_viewed",
-  COMPARE_ORDER_ASSIGNED: "compare_order_assigned",
-  COMPARATOR_TIME_SPENT: "comparator_time_spent", // SC-004
-  COMPARATOR_DIMENSION_VIEWED: "comparator_dimension_viewed",
-
   // Preference
   PREFERENCE_FORM_OPENED: "preference_form_opened",
   PREFERENCE_SUBMITTED: "preference_submitted",

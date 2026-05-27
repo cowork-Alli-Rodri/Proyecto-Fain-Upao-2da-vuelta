@@ -35,9 +35,11 @@ pnpm-debug.log*
 .env*.local
 !.env.example
 
-# Claude Code (puede guardar tokens/credenciales y skills personales)
+# Claude Code (puede guardar tokens/credenciales, skills personales y estado runtime)
 .claude/settings.local.json
 .claude/cache/
+.claude/scheduled_tasks.lock
+.claude/scheduled_tasks/
 
 # Skills personales no relacionadas a este proyecto.
 # Solo se mantienen trackeadas las skills `speckit-*` (workflow del proyecto,
@@ -71,3 +73,13 @@ supabase/.temp/
 # OS-specific tmp
 *.tmp
 *.bak
+
+# Playwright CLI scratch output (screenshots/logs de exploración local)
+.playwright-cli/
+
+# Raw assets sin procesar (videos/imagenes de origen). Los assets de produccion estan en public/
+RECURSOS/
+
+# Debug screenshots sueltos en raiz / data
+fc-gallery-top.png
+data/jne/screenshot-home-2026.png

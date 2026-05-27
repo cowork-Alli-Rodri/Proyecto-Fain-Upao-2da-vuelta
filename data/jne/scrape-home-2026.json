@@ -1,0 +1,207 @@
+{
+  "_meta": {
+    "source": "https://votoinformadoia.jne.gob.pe/",
+    "scraped_at": "2026-05-25T20:24:00-05:00",
+    "scraped_by": "playwright-cli",
+    "election": {
+      "name": "Segunda Eleccion Presidencial 2026",
+      "round": 2,
+      "country": "Peru",
+      "election_date": "2026-06-07",
+      "days_remaining_at_scrape": 13
+    },
+    "site_metrics": {
+      "visits_counter": "158,959"
+    },
+    "global_assets": {
+      "logo_jne": "https://votoinformadoia.jne.gob.pe/jne-logo-white.png",
+      "logo_voto_informado": "https://votoinformadoia.jne.gob.pe/logo-voto-informado-white.png",
+      "banner_2da_vuelta": "https://votoinformadoia.jne.gob.pe/segunda-eleccion-presidencial.png",
+      "eleccia_icon": "https://votoinformadoia.jne.gob.pe/eleccia-icon.png"
+    },
+    "navigation": [
+      { "label": "Nosotros", "href": "https://votoinformado.jne.gob.pe/nosotros" },
+      { "label": "Cronograma", "href": "https://votoinformado.jne.gob.pe/cronograma" },
+      { "label": "Elecciones Generales 2026", "href": "https://votoinformado.jne.gob.pe/elecciones-generales" },
+      { "label": "Material Educativo", "href": "https://votoinformado.jne.gob.pe/material-educativo" },
+      { "label": "JNE TV", "href": "https://votoinformadoia.jne.gob.pe/jne-tv" }
+    ]
+  },
+  "candidates": [
+    {
+      "slug": "fujimori",
+      "id_organizacion_politica": 1366,
+      "id_plan_gobierno": 29690,
+      "full_name": "Keiko Sofia Fujimori Higuchi",
+      "display_name_short": "KEIKO SOFIA FUJIMORI HIGUCHI",
+      "party": {
+        "name": "Fuerza Popular",
+        "logo_url": "https://votoinformadoia.jne.gob.pe/partidos-logos-optimized/1366.jpg"
+      },
+      "photo": {
+        "url": "https://votoinformadoia.jne.gob.pe/bigger-fujimori-photo.jpeg",
+        "width": 2252,
+        "height": 3500,
+        "approved_by_party": true
+      },
+      "actions": {
+        "hoja_de_vida": {
+          "type": "link",
+          "href": "https://votoinformadoia.jne.gob.pe/hoja-vida/fujimori"
+        },
+        "plan_de_gobierno": {
+          "type": "modal_pdf",
+          "pdf_url": "https://votoinformadoia.jne.gob.pe/plan-gobierno-keiko.pdf",
+          "modal_extras": ["Resumen Plan de Gobierno", "Resumir el plan de gobierno con EleccIA"]
+        },
+        "presentacion": {
+          "type": "modal_video",
+          "video_url": "https://jne-videos-publicos.s3.us-east-2.amazonaws.com/portal_documentos/files/videos_candidatos/FUERZA_POPULAR_720_VFSI.mp4",
+          "modal_title": "VIDEO DE PRESENTACION - JNE"
+        },
+        "debates_jne": {
+          "type": "modal_schedule",
+          "upcoming": [
+            {
+              "name": "Debate Tecnico",
+              "date_label": "Domingo 24 de mayo - 8:00 p.m.",
+              "topics": ["Infraestructura", "Reforma del Estado", "Agricultura y medio ambiente", "Economia y generacion del empleo", "Salud", "Juventud y deporte"]
+            },
+            {
+              "name": "Debate Presidencial",
+              "date_label": "Domingo 31 de mayo - 8:00 p.m.",
+              "topics": ["Seguridad ciudadana", "Fortalecimiento del Estado democratico y derechos humanos", "Educacion y salud", "Economia, empleo y reduccion de la pobreza"]
+            }
+          ],
+          "previous_round": [
+            {
+              "name": "Debate N.3",
+              "date_label": "Miercoles 25 de marzo de 2026",
+              "phase": "Primera fase",
+              "topics": ["Seguridad ciudadana y lucha contra la criminalidad", "Integridad publica y lucha contra la corrupcion"],
+              "youtube_link": "bound via onclick, not extractable from DOM"
+            },
+            {
+              "name": "Debate N.5",
+              "date_label": "Martes 31 de marzo de 2026",
+              "phase": "Segunda fase",
+              "topics": ["Educacion, innovacion y tecnologia", "Empleo, desarrollo y emprendimiento"],
+              "youtube_link": "bound via onclick, not extractable from DOM"
+            }
+          ]
+        },
+        "chat_ia": {
+          "type": "modal_chat",
+          "label": "Chat Plan de gobierno con IA",
+          "agent_name": "EleccIA",
+          "subject_party": "Fuerza Popular",
+          "period": "2026-2031",
+          "preset_questions": [
+            "Cuales son los principales ejes del plan de gobierno?",
+            "Que propone para la educacion publica?",
+            "Como piensa combatir la corrupcion?"
+          ],
+          "requires_human_verification": true
+        }
+      },
+      "vicepresidents": [
+        {
+          "order": 1,
+          "title": "1.er Vicepresidente",
+          "full_name": "Luis Fernando Galarreta Velarde",
+          "slug": "galarreta",
+          "hoja_de_vida_href": "https://votoinformadoia.jne.gob.pe/hoja-vida/galarreta",
+          "photo": {
+            "url": "https://votoinformadoia.jne.gob.pe/galarreta-photo.jpg",
+            "width": 616,
+            "height": 1007
+          }
+        },
+        {
+          "order": 2,
+          "title": "2.do Vicepresidente",
+          "full_name": "Miguel Angel Torres Morales",
+          "slug": "torres",
+          "hoja_de_vida_href": "https://votoinformadoia.jne.gob.pe/hoja-vida/torres",
+          "photo": {
+            "url": "https://votoinformadoia.jne.gob.pe/torres-photo.jpg",
+            "width": 989,
+            "height": 1598
+          }
+        }
+      ]
+    },
+    {
+      "slug": "sanchez",
+      "id_organizacion_politica": 1264,
+      "id_plan_gobierno": 29688,
+      "full_name": "Roberto Helbert Sanchez Palomino",
+      "display_name_short": "ROBERTO HELBERT SANCHEZ PALOMINO",
+      "party": {
+        "name": "Juntos por el Peru",
+        "logo_url": "https://votoinformadoia.jne.gob.pe/partidos-logos-optimized/1264.jpg"
+      },
+      "photo": {
+        "url": "https://votoinformadoia.jne.gob.pe/bigger-sanchez-photo.jpeg",
+        "width": 2452,
+        "height": 3500,
+        "approved_by_party": true
+      },
+      "actions": {
+        "hoja_de_vida": {
+          "type": "link",
+          "href": "https://votoinformadoia.jne.gob.pe/hoja-vida/sanchez"
+        },
+        "plan_de_gobierno": {
+          "type": "modal_pdf",
+          "pdf_url": "https://votoinformadoia.jne.gob.pe/plan-gobierno-sanchez.pdf",
+          "modal_extras": ["Resumen Plan de Gobierno", "Resumir el plan de gobierno con EleccIA"]
+        },
+        "presentacion": {
+          "type": "modal_video",
+          "video_url": "https://jne-videos-publicos.s3.us-east-2.amazonaws.com/portal_documentos/files/videos_candidatos/JUNTOS_POR_EL_PERU_720_VFSI.mp4",
+          "modal_title": "VIDEO DE PRESENTACION - JNE"
+        },
+        "debates_jne": {
+          "type": "modal_schedule",
+          "shared_with_other_candidate": true,
+          "note": "Mismo calendario que el otro candidato"
+        },
+        "chat_ia": {
+          "type": "modal_chat",
+          "label": "Chat Plan de gobierno con IA",
+          "agent_name": "EleccIA",
+          "subject_party": "Juntos por el Peru",
+          "period": "2026-2031",
+          "requires_human_verification": true
+        }
+      },
+      "vicepresidents": [
+        {
+          "order": 1,
+          "title": "1.er Vicepresidente",
+          "full_name": "Anali Marquez Huanca",
+          "slug": "marquez",
+          "hoja_de_vida_href": "https://votoinformadoia.jne.gob.pe/hoja-vida/marquez",
+          "photo": {
+            "url": "https://votoinformadoia.jne.gob.pe/marquez-photo.jpg",
+            "width": 427,
+            "height": 602
+          }
+        },
+        {
+          "order": 2,
+          "title": "2.do Vicepresidente",
+          "full_name": "Brigida Curo Bustincio",
+          "slug": "curo",
+          "hoja_de_vida_href": "https://votoinformadoia.jne.gob.pe/hoja-vida/curo",
+          "photo": {
+            "url": "https://votoinformadoia.jne.gob.pe/curo-photo.jpg",
+            "width": 318,
+            "height": 446
+          }
+        }
+      ]
+    }
+  ]
+}

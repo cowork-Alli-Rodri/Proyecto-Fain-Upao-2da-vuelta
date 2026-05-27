@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -12,24 +13,39 @@ import { submitPreference } from "../_actions";
 
 type Candidato = "keiko" | "roberto" | "indeciso";
 
-const OPTIONS: { id: Candidato; label: string; sub: string; color: string }[] = [
+interface Option {
+  id: Candidato;
+  label: string;
+  sub: string;
+  color: string;
+  photo: string | null;
+  logo: { src: string; isSvg: boolean } | null;
+}
+
+const OPTIONS: Option[] = [
   {
     id: "keiko",
     label: "Keiko Fujimori",
     sub: "Fuerza Popular",
     color: "var(--color-candidate-keiko)",
+    photo: "/candidates/keiko-fujimori.webp",
+    logo: { src: "/parties/fuerza-popular.webp", isSvg: false },
   },
   {
     id: "roberto",
     label: "Roberto Sánchez",
     sub: "Juntos por el Perú",
     color: "var(--color-candidate-roberto)",
+    photo: "/candidates/roberto-sanchez.webp",
+    logo: { src: "/parties/juntos-por-el-peru.svg", isSvg: true },
   },
   {
     id: "indeciso",
     label: "Indeciso/a",
-    sub: "Aún no tengo una preferencia clara",
+    sub: "Aún no tengo una decisión clara",
     color: "var(--color-smoke)",
+    photo: null,
+    logo: null,
   },
 ];
 
@@ -70,7 +86,7 @@ export function PreferenceForm() {
     >
       <fieldset className="space-y-3">
         <legend className="text-sm font-medium text-[var(--color-ink)]">
-          ¿Cuál es tu preferencia tras explorar los planes?
+          ¿Cuál es tu decisión tras analizar los planes?
         </legend>
         {OPTIONS.map((o) => {
           const selected = candidato === o.id;
@@ -94,21 +110,60 @@ export function PreferenceForm() {
                   : { borderColor: "color-mix(in oklch, var(--color-smoke) 20%, transparent)" }
               }
             >
-              <span
-                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full font-mono text-base font-bold text-white"
-                style={{ backgroundColor: o.color }}
-                aria-hidden
-              >
-                {o.label
-                  .split(" ")
-                  .filter(Boolean)
-                  .slice(0, 2)
-                  .map((p) => p[0])
-                  .join("")}
-              </span>
-              <div className="flex-1 space-y-0.5">
+              {o.photo ? (
+                <span
+                  className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full ring-2 ring-white"
+                  style={{
+                    backgroundColor: `color-mix(in oklch, ${o.color} 18%, white)`,
+                  }}
+                  aria-hidden
+                >
+                  <Image
+                    src={o.photo}
+                    alt=""
+                    fill
+                    sizes="48px"
+                    className="scale-[1.35] object-cover object-[50%_28%]"
+                    unoptimized
+                  />
+                </span>
+              ) : (
+                <span
+                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full font-mono text-base font-bold text-white"
+                  style={{ backgroundColor: o.color }}
+                  aria-hidden
+                >
+                  ?
+                </span>
+              )}
+              <div className="min-w-0 flex-1 space-y-0.5">
                 <p className="font-medium text-[var(--color-ink)]">{o.label}</p>
-                <p className="text-xs text-[var(--color-smoke)]">{o.sub}</p>
+                <div className="flex items-center gap-1.5">
+                  {o.logo ? (
+                    <span className="relative inline-block h-3.5 w-3.5 shrink-0">
+                      {o.logo.isSvg ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={o.logo.src}
+                          alt=""
+                          aria-hidden
+                          className="h-full w-full object-contain"
+                        />
+                      ) : (
+                        <Image
+                          src={o.logo.src}
+                          alt=""
+                          aria-hidden
+                          fill
+                          sizes="14px"
+                          className="object-contain"
+                          unoptimized
+                        />
+                      )}
+                    </span>
+                  ) : null}
+                  <p className="truncate text-xs text-[var(--color-smoke)]">{o.sub}</p>
+                </div>
               </div>
             </button>
           );
@@ -163,7 +218,7 @@ export function PreferenceForm() {
         disabled={pending || !candidato}
         className="w-full bg-[var(--color-navy-upao)] text-white hover:bg-[var(--color-navy-deep)]"
       >
-        {pending ? "Enviando..." : "Enviar mi preferencia"}
+        {pending ? "Enviando..." : "Decide bien · Enviar"}
       </Button>
 
       <p className="text-center text-xs text-[var(--color-smoke)]">

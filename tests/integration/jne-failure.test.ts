@@ -41,17 +41,7 @@ const isLocal =
       const beforeName = (before as { nombre_completo: string }).nombre_completo;
 
       // Fetch que siempre devuelve 500.
-      const failingFetch = async (
-        input: string | URL | Request,
-      ): Promise<Response> => {
-        const url = typeof input === "string" ? input : input.toString();
-        // El endpoint de token sí responde OK — para llegar al fallo en los endpoints de plan.
-        if (url.includes("/api/authentication/token")) {
-          return new Response(JSON.stringify({ token: "ok-token-1234567890" }), {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-          });
-        }
+      const failingFetch = async (): Promise<Response> => {
         return new Response("Internal Server Error", { status: 500 });
       };
 

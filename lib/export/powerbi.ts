@@ -10,20 +10,24 @@ import type { ExportDataset } from "./dataset";
  * necesita todos los inscritos.
  */
 export function exportPowerBiCsv(ds: ExportDataset): string {
+  const includeIdentity = ds.anonymize === "none";
   const headers = [
     "student_pseudo",
+    ...(includeIdentity ? ["email", "nombres", "apellidos"] : []),
     "facultad",
     "carrera",
     "ciclo",
     "rango_edad",
     "genero",
-    "questionnaire_completed_at",
-    "compare_order_at_submit",
+    "questionnaire_pre_completed_at",
+    "candidatos_completed_at",
+    "questionnaire_post_completed_at",
     "candidato_preferido",
     "confianza",
     "motivo",
     "submitted_at",
-    "respuestas_completadas",
+    "respuestas_pre",
+    "respuestas_post",
   ];
 
   if (ds.preferences.length === 0) {
@@ -36,9 +40,14 @@ export function exportPowerBiCsv(ds: ExportDataset): string {
   }
 
   const profByPseudo = new Map(ds.profiles.map((p) => [p.pseudo, p]));
-  const respuestasCount = new Map<string, number>();
+  const respuestasPre = new Map<string, number>();
+  const respuestasPost = new Map<string, number>();
   for (const a of ds.answers) {
-    respuestasCount.set(a.student_pseudo, (respuestasCount.get(a.student_pseudo) ?? 0) + 1);
+    if (a.momento_snapshot === "pre") {
+      respuestasPre.set(a.student_pseudo, (respuestasPre.get(a.student_pseudo) ?? 0) + 1);
+    } else {
+      respuestasPost.set(a.student_pseudo, (respuestasPost.get(a.student_pseudo) ?? 0) + 1);
+    }
   }
 
   const escape = (v: unknown) => {
@@ -54,18 +63,23 @@ export function exportPowerBiCsv(ds: ExportDataset): string {
     const prof = profByPseudo.get(p.student_pseudo);
     return [
       p.student_pseudo,
+      ...(includeIdentity
+        ? [prof?.email ?? "", prof?.nombres ?? "", prof?.apellidos ?? ""]
+        : []),
       prof?.facultad ?? "",
       prof?.carrera ?? "",
       prof?.ciclo ?? "",
       prof?.rango_edad ?? "",
       prof?.genero ?? "",
-      prof?.questionnaire_completed_at ?? "",
-      p.compare_order_at_submit,
+      prof?.questionnaire_pre_completed_at ?? "",
+      prof?.candidatos_completed_at ?? "",
+      prof?.questionnaire_post_completed_at ?? "",
       p.candidato_preferido,
       p.confianza,
       p.motivo ?? "",
       p.submitted_at,
-      respuestasCount.get(p.student_pseudo) ?? 0,
+      respuestasPre.get(p.student_pseudo) ?? 0,
+      respuestasPost.get(p.student_pseudo) ?? 0,
     ]
       .map(escape)
       .join(",");

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">
+  <rect width="180" height="180" rx="32" fill="#002855"/>
+  <rect x="18" y="34" width="14" height="112" rx="2" fill="#F37021"/>
+  <text x="106" y="124" text-anchor="middle" font-family="Helvetica Neue, system-ui, sans-serif" font-size="90" font-weight="700" fill="#FFFFFF">VI</text>
+</svg>

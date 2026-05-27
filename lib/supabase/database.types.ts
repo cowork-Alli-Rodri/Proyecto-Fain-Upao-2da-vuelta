@@ -89,8 +89,12 @@ export type Database = {
       }
       answers: {
         Row: {
+          dimension_cuestionario_snapshot:
+            | Database["public"]["Enums"]["dim_cuestionario_enum"]
+            | null
           dimension_snapshot: Database["public"]["Enums"]["dim_tematica_enum"]
           id: string
+          momento_snapshot: Database["public"]["Enums"]["momento_enum"]
           question_id: string
           question_snapshot: string
           responded_at: string
@@ -100,8 +104,12 @@ export type Database = {
           valor: Json
         }
         Insert: {
+          dimension_cuestionario_snapshot?:
+            | Database["public"]["Enums"]["dim_cuestionario_enum"]
+            | null
           dimension_snapshot: Database["public"]["Enums"]["dim_tematica_enum"]
           id?: string
+          momento_snapshot: Database["public"]["Enums"]["momento_enum"]
           question_id: string
           question_snapshot: string
           responded_at?: string
@@ -111,8 +119,12 @@ export type Database = {
           valor: Json
         }
         Update: {
+          dimension_cuestionario_snapshot?:
+            | Database["public"]["Enums"]["dim_cuestionario_enum"]
+            | null
           dimension_snapshot?: Database["public"]["Enums"]["dim_tematica_enum"]
           id?: string
+          momento_snapshot?: Database["public"]["Enums"]["momento_enum"]
           question_id?: string
           question_snapshot?: string
           responded_at?: string
@@ -172,6 +184,7 @@ export type Database = {
           nombre_completo: string
           partido: string
           plan_pdf_url: string | null
+          plan_resumen: string | null
         }
         Insert: {
           cargo?: string
@@ -182,6 +195,7 @@ export type Database = {
           nombre_completo: string
           partido: string
           plan_pdf_url?: string | null
+          plan_resumen?: string | null
         }
         Update: {
           cargo?: string
@@ -192,6 +206,7 @@ export type Database = {
           nombre_completo?: string
           partido?: string
           plan_pdf_url?: string | null
+          plan_resumen?: string | null
         }
         Relationships: []
       }
@@ -233,6 +248,51 @@ export type Database = {
           },
         ]
       }
+      fact_checks: {
+        Row: {
+          candidato_relacionado: string | null
+          contexto: string
+          created_at: string
+          created_by: string | null
+          fact_checker_name: string
+          fact_checker_url: string
+          fecha_origen: string | null
+          id: string
+          published_at: string | null
+          status: Database["public"]["Enums"]["fact_check_status_enum"]
+          titular_falso: string
+          updated_at: string
+        }
+        Insert: {
+          candidato_relacionado?: string | null
+          contexto: string
+          created_at?: string
+          created_by?: string | null
+          fact_checker_name: string
+          fact_checker_url: string
+          fecha_origen?: string | null
+          id?: string
+          published_at?: string | null
+          status?: Database["public"]["Enums"]["fact_check_status_enum"]
+          titular_falso: string
+          updated_at?: string
+        }
+        Update: {
+          candidato_relacionado?: string | null
+          contexto?: string
+          created_at?: string
+          created_by?: string | null
+          fact_checker_name?: string
+          fact_checker_url?: string
+          fecha_origen?: string | null
+          id?: string
+          published_at?: string | null
+          status?: Database["public"]["Enums"]["fact_check_status_enum"]
+          titular_falso?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       jne_refresh_log: {
         Row: {
           candidates_updated: number
@@ -266,83 +326,39 @@ export type Database = {
         }
         Relationships: []
       }
-      plan_dimensions: {
+      post_surveys: {
         Row: {
-          dimension: Database["public"]["Enums"]["dim_tematica_enum"]
-          id: string
-          indicador: string | null
-          last_synced_at: string
-          meta: string | null
-          objetivo: string | null
-          plan_id: number
-          problema: string | null
-          raw_json: Json
+          comentario: string | null
+          dimension_top: Database["public"]["Enums"]["dimension_top_enum"]
+          opinion_changed: Database["public"]["Enums"]["opinion_change_enum"]
+          student_id: string
+          submitted_at: string
+          utility_rating: number
+          would_recommend: boolean
         }
         Insert: {
-          dimension: Database["public"]["Enums"]["dim_tematica_enum"]
-          id?: string
-          indicador?: string | null
-          last_synced_at?: string
-          meta?: string | null
-          objetivo?: string | null
-          plan_id: number
-          problema?: string | null
-          raw_json: Json
+          comentario?: string | null
+          dimension_top: Database["public"]["Enums"]["dimension_top_enum"]
+          opinion_changed: Database["public"]["Enums"]["opinion_change_enum"]
+          student_id: string
+          submitted_at?: string
+          utility_rating: number
+          would_recommend: boolean
         }
         Update: {
-          dimension?: Database["public"]["Enums"]["dim_tematica_enum"]
-          id?: string
-          indicador?: string | null
-          last_synced_at?: string
-          meta?: string | null
-          objetivo?: string | null
-          plan_id?: number
-          problema?: string | null
-          raw_json?: Json
+          comentario?: string | null
+          dimension_top?: Database["public"]["Enums"]["dimension_top_enum"]
+          opinion_changed?: Database["public"]["Enums"]["opinion_change_enum"]
+          student_id?: string
+          submitted_at?: string
+          utility_rating?: number
+          would_recommend?: boolean
         }
-        Relationships: [
-          {
-            foreignKeyName: "plan_dimensions_plan_id_fkey"
-            columns: ["plan_id"]
-            isOneToOne: false
-            referencedRelation: "plans"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      plans: {
-        Row: {
-          candidate_id: number
-          header_json: Json
-          id: number
-          last_synced_at: string
-        }
-        Insert: {
-          candidate_id: number
-          header_json: Json
-          id: number
-          last_synced_at?: string
-        }
-        Update: {
-          candidate_id?: number
-          header_json?: Json
-          id?: number
-          last_synced_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "plans_candidate_id_fkey"
-            columns: ["candidate_id"]
-            isOneToOne: true
-            referencedRelation: "candidates"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       preferences: {
         Row: {
           candidato_preferido: string
-          compare_order_at_submit: Database["public"]["Enums"]["compare_order_enum"]
           confianza: number
           id: string
           motivo: string | null
@@ -351,7 +367,6 @@ export type Database = {
         }
         Insert: {
           candidato_preferido: string
-          compare_order_at_submit: Database["public"]["Enums"]["compare_order_enum"]
           confianza: number
           id?: string
           motivo?: string | null
@@ -360,7 +375,6 @@ export type Database = {
         }
         Update: {
           candidato_preferido?: string
-          compare_order_at_submit?: Database["public"]["Enums"]["compare_order_enum"]
           confianza?: number
           id?: string
           motivo?: string | null
@@ -381,13 +395,14 @@ export type Database = {
         Row: {
           anonymized_at: string | null
           apellidos: string | null
+          candidatos_completed_at: string | null
+          candidatos_dimensions_viewed: string[]
           carrera: string | null
           ciclo: number | null
-          compare_order:
-            | Database["public"]["Enums"]["compare_order_enum"]
-            | null
           created_at: string
           current_step: number
+          current_step_post: number
+          current_step_pre: number
           email: string | null
           email_institucional: boolean
           facultad: string | null
@@ -396,6 +411,8 @@ export type Database = {
           is_anonymized: boolean
           nombres: string | null
           questionnaire_completed_at: string | null
+          questionnaire_post_completed_at: string | null
+          questionnaire_pre_completed_at: string | null
           rango_edad: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
@@ -403,13 +420,14 @@ export type Database = {
         Insert: {
           anonymized_at?: string | null
           apellidos?: string | null
+          candidatos_completed_at?: string | null
+          candidatos_dimensions_viewed?: string[]
           carrera?: string | null
           ciclo?: number | null
-          compare_order?:
-            | Database["public"]["Enums"]["compare_order_enum"]
-            | null
           created_at?: string
           current_step?: number
+          current_step_post?: number
+          current_step_pre?: number
           email?: string | null
           email_institucional?: boolean
           facultad?: string | null
@@ -418,6 +436,8 @@ export type Database = {
           is_anonymized?: boolean
           nombres?: string | null
           questionnaire_completed_at?: string | null
+          questionnaire_post_completed_at?: string | null
+          questionnaire_pre_completed_at?: string | null
           rango_edad?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
@@ -425,13 +445,14 @@ export type Database = {
         Update: {
           anonymized_at?: string | null
           apellidos?: string | null
+          candidatos_completed_at?: string | null
+          candidatos_dimensions_viewed?: string[]
           carrera?: string | null
           ciclo?: number | null
-          compare_order?:
-            | Database["public"]["Enums"]["compare_order_enum"]
-            | null
           created_at?: string
           current_step?: number
+          current_step_post?: number
+          current_step_pre?: number
           email?: string | null
           email_institucional?: boolean
           facultad?: string | null
@@ -440,6 +461,8 @@ export type Database = {
           is_anonymized?: boolean
           nombres?: string | null
           questionnaire_completed_at?: string | null
+          questionnaire_post_completed_at?: string | null
+          questionnaire_pre_completed_at?: string | null
           rango_edad?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
@@ -451,10 +474,17 @@ export type Database = {
           activo: boolean
           created_at: string
           created_by: string | null
+          dimension_cuestionario:
+            | Database["public"]["Enums"]["dim_cuestionario_enum"]
+            | null
+          dimension_jne_mapping:
+            | Database["public"]["Enums"]["dim_tematica_enum"]
+            | null
           dimension_tematica: Database["public"]["Enums"]["dim_tematica_enum"]
           enunciado: string
           fuente: string | null
           id: string
+          momento: Database["public"]["Enums"]["momento_enum"]
           opciones: Json | null
           orden: number
           tipo: Database["public"]["Enums"]["question_type_enum"]
@@ -464,10 +494,17 @@ export type Database = {
           activo?: boolean
           created_at?: string
           created_by?: string | null
+          dimension_cuestionario?:
+            | Database["public"]["Enums"]["dim_cuestionario_enum"]
+            | null
+          dimension_jne_mapping?:
+            | Database["public"]["Enums"]["dim_tematica_enum"]
+            | null
           dimension_tematica: Database["public"]["Enums"]["dim_tematica_enum"]
           enunciado: string
           fuente?: string | null
           id?: string
+          momento?: Database["public"]["Enums"]["momento_enum"]
           opciones?: Json | null
           orden: number
           tipo: Database["public"]["Enums"]["question_type_enum"]
@@ -477,10 +514,17 @@ export type Database = {
           activo?: boolean
           created_at?: string
           created_by?: string | null
+          dimension_cuestionario?:
+            | Database["public"]["Enums"]["dim_cuestionario_enum"]
+            | null
+          dimension_jne_mapping?:
+            | Database["public"]["Enums"]["dim_tematica_enum"]
+            | null
           dimension_tematica?: Database["public"]["Enums"]["dim_tematica_enum"]
           enunciado?: string
           fuente?: string | null
           id?: string
+          momento?: Database["public"]["Enums"]["momento_enum"]
           opciones?: Json | null
           orden?: number
           tipo?: Database["public"]["Enums"]["question_type_enum"]
@@ -522,10 +566,43 @@ export type Database = {
       }
     }
     Views: {
+      mv_delta_pre_post: {
+        Row: {
+          delta: number | null
+          dimension_cuestionario:
+            | Database["public"]["Enums"]["dim_cuestionario_enum"]
+            | null
+          dimension_jne_mapping:
+            | Database["public"]["Enums"]["dim_tematica_enum"]
+            | null
+          question_id: string | null
+          student_id: string | null
+          tipo: Database["public"]["Enums"]["question_type_enum"] | null
+          valor_post: number | null
+          valor_pre: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "answers_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mv_evolucion_temporal: {
         Row: {
-          candidato_preferido: string | null
+          candidato: string | null
           fecha: string | null
+          metrica: string | null
           n: number | null
         }
         Relationships: []
@@ -534,20 +611,12 @@ export type Database = {
         Row: {
           confianza_promedio: number | null
           singleton_key: number | null
-          total_completados: number | null
+          total_completaron_candidatos: number | null
+          total_completaron_post: number | null
+          total_completaron_pre: number | null
           total_completaron_sin_preferencia: number | null
           total_inscritos: number | null
           total_preferencias: number | null
-        }
-        Relationships: []
-      }
-      mv_orden_vs_preferencia: {
-        Row: {
-          candidato_preferido: string | null
-          n: number | null
-          orden_asignado:
-            | Database["public"]["Enums"]["compare_order_enum"]
-            | null
         }
         Relationships: []
       }
@@ -563,21 +632,25 @@ export type Database = {
       }
     }
     Functions: {
-      assign_compare_order_random: {
-        Args: never
-        Returns: Database["public"]["Enums"]["compare_order_enum"]
-      }
-      current_role: {
-        Args: never
-        Returns: Database["public"]["Enums"]["user_role"]
-      }
       hash_opaque_user_id: { Args: { user_uuid: string }; Returns: string }
-      show_limit: { Args: never; Returns: number }
-      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
-      compare_order_enum: "keiko_left" | "roberto_left"
+      dim_cuestionario_enum:
+        | "educacion"
+        | "juventud"
+        | "trabajo"
+        | "economia"
+        | "social_publicas"
       dim_tematica_enum: "social" | "economica" | "ambiental" | "institucional"
+      dimension_top_enum:
+        | "social"
+        | "economica"
+        | "ambiental"
+        | "institucional"
+        | "ninguna"
+      fact_check_status_enum: "draft" | "published" | "archived"
+      momento_enum: "pre" | "post" | "both"
+      opinion_change_enum: "si_mucho" | "si_un_poco" | "no"
       question_type_enum:
         | "likert"
         | "single"
@@ -716,8 +789,24 @@ export const Constants = {
   },
   public: {
     Enums: {
-      compare_order_enum: ["keiko_left", "roberto_left"],
+      dim_cuestionario_enum: [
+        "educacion",
+        "juventud",
+        "trabajo",
+        "economia",
+        "social_publicas",
+      ],
       dim_tematica_enum: ["social", "economica", "ambiental", "institucional"],
+      dimension_top_enum: [
+        "social",
+        "economica",
+        "ambiental",
+        "institucional",
+        "ninguna",
+      ],
+      fact_check_status_enum: ["draft", "published", "archived"],
+      momento_enum: ["pre", "post", "both"],
+      opinion_change_enum: ["si_mucho", "si_un_poco", "no"],
       question_type_enum: [
         "likert",
         "single",

@@ -9,23 +9,39 @@ export function KpiGrid({ kpis }: { kpis: KpiSummary }) {
       accent: "var(--color-navy-upao)",
     },
     {
-      kicker: "Completaron",
-      label: "Cuestionario terminado",
-      value: kpis.total_completados,
-      sub: `${kpis.pct_avance}% del grupo`,
+      kicker: "Completaron pre",
+      label: "Cerraron el primer bloque",
+      value: kpis.total_completaron_pre,
+      sub: `${pct(kpis.total_completaron_pre, kpis.total_inscritos)}% del grupo`,
       accent: "var(--color-cyan-deep)",
+    },
+    {
+      kicker: "Vieron candidatos",
+      label: "Revisaron las 4 dimensiones JNE",
+      value: kpis.total_completaron_candidatos,
+      sub: `${pct(kpis.total_completaron_candidatos, kpis.total_inscritos)}% del grupo`,
+      accent: "var(--color-coral-pulse)",
+    },
+    {
+      kicker: "Completaron post",
+      label: "Cerraron el segundo bloque",
+      value: kpis.total_completaron_post,
+      sub: `${pct(kpis.total_completaron_post, kpis.total_inscritos)}% del grupo`,
+      accent: "var(--color-mint-success)",
+    },
+    {
+      kicker: "Cambio opinión",
+      label: "Cambió postura en al menos 1 pregunta",
+      value: `${Math.round(kpis.opinion_change_rate * 100)}%`,
+      accent: "var(--color-mango-sun)",
+      mono: true,
     },
     {
       kicker: "Preferencia",
       label: "Declararon su voto",
       value: kpis.total_preferencias,
-      accent: "var(--color-mango-sun)",
-    },
-    {
-      kicker: "Sin preferencia",
-      label: "Completaron cuestionario sin declarar",
-      value: kpis.total_sin_preferencia,
-      accent: "var(--color-graphite)",
+      sub: kpis.total_sin_preferencia > 0 ? `${kpis.total_sin_preferencia} sin declarar` : undefined,
+      accent: "var(--color-navy-deep)",
     },
     {
       kicker: "Confianza",
@@ -36,7 +52,7 @@ export function KpiGrid({ kpis }: { kpis: KpiSummary }) {
     },
     {
       kicker: "Avance",
-      label: "Tasa de completitud",
+      label: "Completaron flujo completo",
       value: `${kpis.pct_avance}%`,
       accent: "var(--color-mint-success)",
       mono: true,
@@ -44,7 +60,7 @@ export function KpiGrid({ kpis }: { kpis: KpiSummary }) {
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-border)] sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-border)] sm:grid-cols-2 lg:grid-cols-4">
       {cards.map((c) => (
         <article key={c.kicker} className="space-y-2 bg-[var(--color-surface)] p-5 sm:p-6">
           <p
@@ -71,4 +87,8 @@ export function KpiGrid({ kpis }: { kpis: KpiSummary }) {
       ))}
     </div>
   );
+}
+
+function pct(numerator: number, denominator: number): number {
+  return denominator > 0 ? Math.round((numerator / denominator) * 100) : 0;
 }

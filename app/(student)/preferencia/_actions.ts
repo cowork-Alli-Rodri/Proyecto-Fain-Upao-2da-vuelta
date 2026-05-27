@@ -37,25 +37,18 @@ export async function submitPreference(input: unknown): Promise<Result<{ done: t
     if (!ts.success) return err({ code: "TurnstileFailed" });
   }
 
-  // Verifica cuestionario completo y orden persistido
+  // Verifica que el bloque POST esté cerrado (en v2 ese es el cierre real del cuestionario).
   const { data: profile } = await supabase
     .from("profiles")
-    .select("questionnaire_completed_at, compare_order")
+    .select("questionnaire_post_completed_at")
     .eq("id", user.id)
     .single();
   const p = profile as
-    | { questionnaire_completed_at: string | null; compare_order: "keiko_left" | "roberto_left" | null }
+    | { questionnaire_post_completed_at: string | null }
     | null;
 
-  if (!p?.questionnaire_completed_at) {
+  if (!p?.questionnaire_post_completed_at) {
     return err({ code: "QuestionnaireIncomplete" });
-  }
-  if (!p.compare_order) {
-    return err({
-      code: "ValidationError",
-      field: "compare_order",
-      message: "Debes pasar por el comparador antes de declarar preferencia.",
-    });
   }
 
   // ¿Ya envió?
@@ -73,7 +66,6 @@ export async function submitPreference(input: unknown): Promise<Result<{ done: t
     candidato_preferido: parsed.data.candidatoPreferido,
     confianza: parsed.data.confianza,
     motivo: parsed.data.motivo?.trim() || null,
-    compare_order_at_submit: p.compare_order,
   });
   if (error) {
     logger.error("submitPreference insert failed", { correlationId, dbCode: error.code });
@@ -85,6 +77,7 @@ export async function submitPreference(input: unknown): Promise<Result<{ done: t
     candidato: parsed.data.candidatoPreferido,
   });
 
-  redirect("/cierre");
+  // Flow v2: la encuesta final va después de la preferencia.
+  redirect("/encuesta-final");
   return ok({ done: true });
 }

@@ -1,53 +1,59 @@
 import {
-  JneFormulaResponseSchema,
-  JnePlanDetalleSchema,
-  JnePlanHeaderResponseSchema,
-  JneTokenResponseSchema,
-} from "./schemas";
-import {
   JneAuthError,
   JneNetworkError,
   JneSchemaError,
   JneTimeoutError,
-  JNE_PROCESO_ELECTORAL,
-  JNE_TIPO_ELECCION_PRESIDENCIAL,
-  type JneFormulaResponse,
-  type JnePlanDetalle,
-  type JnePlanHeaderResponse,
 } from "./types";
 
+import { z } from "zod";
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "../supabase/database.types";
+
 /**
- * Interfaz mínima para persistir el token de sesión entre llamadas.
- * El backend usa `app_settings` (single row), pero los tests pueden inyectar
- * una implementación en memoria.
+ * Cliente del nuevo servicio JNE (`votoinformadoia.jne.gob.pe`).
+ *
+ * Migración de mayo 2026: el JNE migró del endpoint clásico (4 dimensiones
+ * estructuradas en JSON) a un servicio que expone un resumen textual del plan
+ * de gobierno generado por IA. Mantenemos la capa de cliente para encapsular
+ * retries, timeout y schema validation.
+ *
+ * El nuevo servicio es público (no requiere token), así que `JneTokenStore`
+ * existe solo por compatibilidad con el `JneClient` que importa el resto del
+ * proyecto (cache util, refresh). El token nunca se usa.
  */
+
+const DEFAULT_BASE_URL = "https://votoinformadoia.jne.gob.pe/ServiciosWeb";
+const DEFAULT_TIMEOUT_MS = 12_000;
+const DEFAULT_USER_AGENT =
+  "VotoInformadoUPAO/1.0 (academic; +https://github.com/MrWoffi)";
+
+// Backoff exponencial: 1s, 2s, 4s — total ~7s antes de fallar.
+const RETRY_DELAYS_MS = [1_000, 2_000, 4_000];
+
 export interface JneTokenStore {
   get(): Promise<{ token: string; expiresAt: string } | null>;
   set(token: string, expiresAt: string): Promise<void>;
 }
 
-const DEFAULT_BASE_URL = "https://web.jne.gob.pe/serviciovotoinformado";
-const DEFAULT_TIMEOUT_MS = 10_000;
-const DEFAULT_USER_AGENT = "VotoInformadoUPAO/1.0 (academic; +https://github.com/MrWoffi)";
+export const JnePlanResumenSchema = z.object({
+  success: z.boolean(),
+  type: z.number().optional(),
+  message: z.string().optional(),
+  data: z
+    .object({
+      idOrganizacionPolitica: z.union([z.string(), z.number()]),
+      resumen: z.string(),
+    })
+    .nullable(),
+});
 
-// Backoff exponencial: 1s, 2s, 4s — total ~7s antes de fallar.
-const RETRY_DELAYS_MS = [1_000, 2_000, 4_000];
+export type JnePlanResumen = z.infer<typeof JnePlanResumenSchema>;
 
-/**
- * Cliente tipado para `web.jne.gob.pe/serviciovotoinformado`.
- *
- * Garantías:
- *  - 401: reintenta UNA vez tras forzar nuevo token.
- *  - 5xx: hasta 3 retries con backoff exponencial.
- *  - Schema mismatch: lanza `JneSchemaError` (no escribe DB).
- *  - Timeout: 10s por request, lanza `JneTimeoutError`.
- *
- * El token de sesión vive ~24h. Lo cacheamos en `app_settings` para no
- * golpear el endpoint `/authentication/token` en cada request.
- */
 export class JneClient {
   constructor(
-    private readonly tokenStore: JneTokenStore,
+    // tokenStore se mantiene en la firma para no romper callers existentes.
+    _tokenStore: JneTokenStore,
     private readonly options: {
       baseUrl?: string;
       timeoutMs?: number;
@@ -68,84 +74,49 @@ export class JneClient {
     return this.options.fetch ?? fetch;
   }
 
-  async getToken(force = false): Promise<string> {
-    if (!force) {
-      const cached = await this.tokenStore.get();
-      if (cached && new Date(cached.expiresAt).getTime() > Date.now() + 5 * 60 * 1000) {
-        return cached.token;
-      }
-    }
-
-    const response = await this.rawFetch(`${this.baseUrl}/api/authentication/token`, {
-      withAuth: false,
+  /**
+   * Devuelve el resumen textual del plan de gobierno de una organización
+   * política. Backed por:
+   *   POST /api/v1/plan-gobierno/resumen-por-organizacion
+   *   body: {"idOrganizacionPolitica": <id>}
+   */
+  async getPlanResumen(idOrganizacionPolitica: number): Promise<string> {
+    const url = `${this.baseUrl}/api/v1/plan-gobierno/resumen-por-organizacion`;
+    const payload = await this.fetchJson(url, {
+      idOrganizacionPolitica,
     });
 
-    const payload = await safeJson(response);
-    const parsed = JneTokenResponseSchema.safeParse(payload);
+    const parsed = JnePlanResumenSchema.safeParse(payload);
     if (!parsed.success) {
-      throw new JneSchemaError("Respuesta inesperada del endpoint /authentication/token", parsed.error);
+      throw new JneSchemaError(
+        "Respuesta inesperada de resumen-por-organizacion",
+        parsed.error,
+      );
     }
-
-    const token = extractToken(parsed.data);
-    // TTL conservador: 23h para refrescar antes de que expire.
-    const expiresAt = new Date(Date.now() + 23 * 60 * 60 * 1000).toISOString();
-    await this.tokenStore.set(token, expiresAt);
-    return token;
-  }
-
-  async getPlanHeader(idOrganizacionPolitica: number): Promise<JnePlanHeaderResponse> {
-    const url = `${this.baseUrl}/api/PlanGobiernoP/getPlanGobiernoByIdProcesoElectoral?idProcesoElectoral=${JNE_PROCESO_ELECTORAL}&idTipoEleccion=${JNE_TIPO_ELECCION_PRESIDENCIAL}&idOrganizacionPolitica=${idOrganizacionPolitica}`;
-    const payload = await this.fetchJson(url);
-    const parsed = JnePlanHeaderResponseSchema.safeParse(payload);
-    if (!parsed.success) {
-      throw new JneSchemaError("Respuesta inesperada de getPlanGobiernoByIdProcesoElectoral", parsed.error);
+    if (!parsed.data.success || !parsed.data.data?.resumen) {
+      throw new JneNetworkError(
+        `JNE devolvió success=false o resumen vacío para ${idOrganizacionPolitica}: ${parsed.data.message ?? "(sin mensaje)"}`,
+      );
     }
-    return parsed.data;
-  }
-
-  async getPlanDetalle(idPlanGobierno: number): Promise<JnePlanDetalle> {
-    const url = `${this.baseUrl}/api/PlanGobiernoP/getPlanGobiernoDetalleByIdPlanGobierno?idPlanGobierno=${idPlanGobierno}`;
-    const payload = await this.fetchJson(url);
-    const parsed = JnePlanDetalleSchema.safeParse(payload);
-    if (!parsed.success) {
-      throw new JneSchemaError("Respuesta inesperada de getPlanGobiernoDetalleByIdPlanGobierno", parsed.error);
-    }
-    return parsed.data;
-  }
-
-  async getFormula(idOrganizacionPolitica: number): Promise<JneFormulaResponse> {
-    const url = `${this.baseUrl}/api/ConsultaFormulasP/getFormulasByIdProcesoElectoral?idProcesoElectoral=${JNE_PROCESO_ELECTORAL}&idTipoEleccion=${JNE_TIPO_ELECCION_PRESIDENCIAL}&idOrganizacionPolitica=${idOrganizacionPolitica}`;
-    const payload = await this.fetchJson(url);
-    const parsed = JneFormulaResponseSchema.safeParse(payload);
-    if (!parsed.success) {
-      throw new JneSchemaError("Respuesta inesperada de getFormulasByIdProcesoElectoral", parsed.error);
-    }
-    return parsed.data;
+    return parsed.data.data.resumen;
   }
 
   // --------------------------------------------------------------------------
-  // Internal — manejo de retries, timeout y 401 con refresh de token
+  // Internal — manejo de retries y timeout
   // --------------------------------------------------------------------------
 
-  private async fetchJson(url: string): Promise<unknown> {
-    let triedRefresh = false;
+  private async fetchJson(url: string, body: unknown): Promise<unknown> {
     let lastError: unknown = null;
 
     for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
       try {
-        const response = await this.rawFetch(url, { withAuth: true });
+        const response = await this.rawFetch(url, body);
 
-        if (response.status === 401) {
-          if (triedRefresh) {
-            throw new JneAuthError(`401 sostenido en ${url}`);
-          }
-          triedRefresh = true;
-          await this.getToken(true);
-          continue;
+        if (response.status === 401 || response.status === 403) {
+          throw new JneAuthError(`${response.status} en ${url}`);
         }
 
         if (response.status >= 500) {
-          // Throw para entrar al catch y aplicar backoff.
           throw new JneNetworkError(`${response.status} en ${url}`, response.status);
         }
 
@@ -161,7 +132,6 @@ export class JneClient {
           throw e;
         }
 
-        // 5xx o timeout o network — aplicar backoff si quedan retries
         const delay = RETRY_DELAYS_MS[attempt];
         if (delay === undefined) break;
         await sleep(delay);
@@ -172,27 +142,21 @@ export class JneClient {
     throw new JneNetworkError(`Refresh JNE agotó retries en ${url}`);
   }
 
-  private async rawFetch(
-    url: string,
-    opts: { withAuth: boolean },
-  ): Promise<Response> {
+  private async rawFetch(url: string, body: unknown): Promise<Response> {
     const headers: Record<string, string> = {
       Accept: "application/json",
+      "Content-Type": "application/json",
       "User-Agent": this.options.userAgent ?? DEFAULT_USER_AGENT,
     };
-
-    if (opts.withAuth) {
-      const token = await this.getToken(false);
-      headers["X-Session-Token"] = token;
-    }
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
 
     try {
       return await this.fetchImpl(url, {
-        method: "GET",
+        method: "POST",
         headers,
+        body: JSON.stringify(body),
         signal: controller.signal,
       });
     } catch (e) {
@@ -219,7 +183,6 @@ function sleep(ms: number): Promise<void> {
 
 async function safeJson(response: Response): Promise<unknown> {
   const text = await response.text();
-  // El JNE eventualmente sirve respuestas con BOM UTF-8 — limpiar.
   const clean = text.replace(/^﻿/, "");
   if (clean.length === 0) return null;
   try {
@@ -232,63 +195,20 @@ async function safeJson(response: Response): Promise<unknown> {
   }
 }
 
-function extractToken(payload: unknown): string {
-  if (typeof payload === "string") return payload;
-  if (typeof payload === "object" && payload !== null) {
-    if ("token" in payload && typeof (payload as { token: unknown }).token === "string") {
-      return (payload as { token: string }).token;
-    }
-    if ("jwt" in payload && typeof (payload as { jwt: unknown }).jwt === "string") {
-      return (payload as { jwt: string }).jwt;
-    }
-    if ("data" in payload) {
-      const inner = (payload as { data: unknown }).data;
-      if (
-        typeof inner === "object" &&
-        inner !== null &&
-        "token" in inner &&
-        typeof (inner as { token: unknown }).token === "string"
-      ) {
-        return (inner as { token: string }).token;
-      }
-    }
-  }
-  throw new JneSchemaError("No pudimos extraer el token de la respuesta.");
-}
-
 // ============================================================================
-// TokenStore real respaldado por Supabase `app_settings`
+// TokenStore stubs — el nuevo endpoint no necesita token, pero conservamos las
+// fábricas para que llamadores existentes (refresh, tests) sigan compilando.
 // ============================================================================
-
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "../supabase/database.types";
 
 export function createSupabaseTokenStore(
-  client: SupabaseClient<Database>,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _client: SupabaseClient<Database>,
 ): JneTokenStore {
-  return {
-    async get() {
-      const { data } = await client
-        .from("app_settings")
-        .select("jne_session_token, jne_token_expires_at")
-        .eq("id", 1)
-        .maybeSingle();
-      const row = data as { jne_session_token: string | null; jne_token_expires_at: string | null } | null;
-      if (!row?.jne_session_token || !row.jne_token_expires_at) return null;
-      return { token: row.jne_session_token, expiresAt: row.jne_token_expires_at };
-    },
-    async set(token, expiresAt) {
-      await client
-        .from("app_settings")
-        .update({ jne_session_token: token, jne_token_expires_at: expiresAt })
-        .eq("id", 1);
-    },
-  };
+  // El nuevo endpoint /resumen-por-organizacion no requiere token, pero
+  // mantenemos la firma para no romper a los callers existentes.
+  return createMemoryTokenStore();
 }
 
-/**
- * In-memory token store — útil para tests y CLI scripts efímeros.
- */
 export function createMemoryTokenStore(initial?: {
   token: string;
   expiresAt: string;
