@@ -41,9 +41,13 @@ export function captureEvent(
   payload?: Record<string, unknown>,
 ): void {
   if (typeof window === "undefined") return;
-  const posthog = (window as typeof window & { posthog?: { capture?: (e: string, p: Record<string, unknown>) => void } }).posthog;
-  if (!posthog?.capture) return;
-  posthog.capture(event, sanitizePayload(payload));
+  try {
+    const posthog = (window as typeof window & { posthog?: { capture?: (e: string, p: Record<string, unknown>) => void } }).posthog;
+    if (!posthog?.capture) return;
+    posthog.capture(event, sanitizePayload(payload));
+  } catch {
+    // PostHog roto no debe romper la app
+  }
 }
 
 /**
@@ -51,7 +55,11 @@ export function captureEvent(
  */
 export function identifyUser(opaqueUserId: string, traits?: Record<string, unknown>): void {
   if (typeof window === "undefined") return;
-  const posthog = (window as typeof window & { posthog?: { identify?: (id: string, t: Record<string, unknown>) => void } }).posthog;
-  if (!posthog?.identify) return;
-  posthog.identify(opaqueUserId, sanitizePayload(traits));
+  try {
+    const posthog = (window as typeof window & { posthog?: { identify?: (id: string, t: Record<string, unknown>) => void } }).posthog;
+    if (!posthog?.identify) return;
+    posthog.identify(opaqueUserId, sanitizePayload(traits));
+  } catch {
+    // PostHog roto no debe romper la app
+  }
 }

@@ -78,13 +78,22 @@ export async function proxy(request: NextRequest) {
       });
     }
 
-    // 1) Role-gating
-    const { data } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-    const role = (data as { role?: "student" | "teacher" | "admin" } | null)?.role;
+    // 1) Role-gating — tolerante a fallos de DB. Si el query a profiles
+    // falla (RLS, network, race condition con el trigger handle_new_user),
+    // dejamos pasar al usuario. Las páginas server-side validan de nuevo.
+    let role: "student" | "teacher" | "admin" | undefined;
+    try {
+      const { data } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+      role = (data as { role?: "student" | "teacher" | "admin" } | null)?.role;
+    } catch {
+      role = undefined;
+    }
+    // Si no pudimos resolver el rol, no aplicamos role-gating en este request.
+    if (!role) return response;
 
     const needsTeacher = TEACHER_ADMIN_PATHS.some((p) => pathname.startsWith(p));
     const needsAdmin = ADMIN_ONLY_PATHS.some((p) => pathname.startsWith(p));
