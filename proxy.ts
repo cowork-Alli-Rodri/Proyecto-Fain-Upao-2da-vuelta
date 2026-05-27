@@ -40,6 +40,14 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Server Actions y form POSTs: solo refrescar la sesión, sin role-gating.
+  // El role-gating en POSTs interfiere con el response RSC del Server Action
+  // (Next.js error E394: "An unexpected response was received from the server").
+  // Cada Server Action valida auth/role por sí mismo dentro del código.
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    return response;
+  }
+
   const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
   // No autenticado en ruta protegida → /login
