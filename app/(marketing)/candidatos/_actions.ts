@@ -43,10 +43,6 @@ export async function markDimensionViewed(
     | null;
 
   if (!profile) return err({ code: "NotFound", entity: "profile" });
-  if (profile.role !== "student") {
-    // Teacher/admin no necesitan trackear; respondemos no-op.
-    return ok({ viewedCount: 0, completed: false });
-  }
   if (!profile.questionnaire_pre_completed_at) {
     return err({
       code: "ValidationError",
@@ -54,6 +50,11 @@ export async function markDimensionViewed(
       message: "Debes completar el cuestionario previo antes de revisar candidatos.",
     });
   }
+  // Nota: antes había un guard `role !== "student"` que retornaba no-op silencioso.
+  // Eso causaba un bug cuando un usuario que empezó el flow como student era
+  // promovido a admin/teacher mid-flow: la UI marcaba dimensiones pero la DB
+  // nunca actualizaba, dejando el botón "Continuar" desactivado para siempre.
+  // RLS protege que solo escriba su propio profile, así que el role no importa.
 
   const current = new Set(profile.candidatos_dimensions_viewed ?? []);
   current.add(dimension);
