@@ -33,20 +33,27 @@ const AUTH_TTL_MS = 8 * 60 * 60 * 1000;
 const AUTH_AT_COOKIE = "vi_auth_at";
 
 export async function proxy(request: NextRequest) {
+  // Server Actions de Next.js 16: identificados por header `Next-Action`.
+  // El middleware NO debe correr en ellos — cualquier modificación al response
+  // (incluso un NextResponse.next() de Supabase) borra los headers RSC que
+  // el cliente espera y dispara E394 "An unexpected response was received
+  // from the server". Los Server Actions validan auth/role por sí mismos.
+  if (request.headers.get("next-action")) {
+    return NextResponse.next();
+  }
+
+  // Form submits (POST sin Next-Action): también dejamos pasar sin modificar
+  // el response, por la misma razón.
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    return NextResponse.next();
+  }
+
   const { supabase, response } = createMiddlewareClient(request);
   const { pathname } = request.nextUrl;
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  // Server Actions y form POSTs: solo refrescar la sesión, sin role-gating.
-  // El role-gating en POSTs interfiere con el response RSC del Server Action
-  // (Next.js error E394: "An unexpected response was received from the server").
-  // Cada Server Action valida auth/role por sí mismo dentro del código.
-  if (request.method !== "GET" && request.method !== "HEAD") {
-    return response;
-  }
 
   const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
