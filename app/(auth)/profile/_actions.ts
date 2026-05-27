@@ -50,8 +50,11 @@ export async function updateProfile(input: unknown): Promise<Result<{ redirectTo
   }
 
   logger.info("profile updated", { correlationId, userId: user.id });
-  redirect("/cuestionario");
-  return ok({ redirectTo: "/cuestionario" });
+  // Redirect directo a /cuestionario-pre (saltar el hop legacy /cuestionario,
+  // que se prerenderiza estático y rompe el Server Action por mismatch de
+  // headers PRERENDER vs RSC).
+  redirect("/cuestionario-pre");
+  return ok({ redirectTo: "/cuestionario-pre" });
 }
 
 /**
