@@ -4,7 +4,7 @@
   "private": true,
   "description": "Webapp interactiva para estudiantes UPAO — Voto Informado Segunda Vuelta 2026",
   "engines": {
-    "node": ">=22",
+    "node": "22.x",
     "pnpm": ">=11"
   },
   "packageManager": "pnpm@11.0.8",
