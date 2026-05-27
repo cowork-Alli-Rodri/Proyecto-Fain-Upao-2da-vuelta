@@ -21,20 +21,26 @@ export const metadata: Metadata = {
 export const revalidate = 1800;
 
 async function loadPublishedFactChecks(): Promise<PublishedFactCheck[]> {
-  const supabase = createAdminClient();
-  // Ordenamos por fecha_origen (fecha real de la verificación) descendente,
-  // con fallback a published_at. Así la galería refleja la actualidad de los
-  // casos y queda naturalmente variada por candidato.
-  const { data } = await supabase
-    .from("fact_checks" as never)
-    .select(
-      "id, titular_falso, contexto, fact_checker_name, fact_checker_url, candidato_relacionado, fecha_origen, published_at",
-    )
-    .eq("status", "published")
-    .order("fecha_origen", { ascending: false, nullsFirst: false })
-    .order("published_at", { ascending: false })
-    .limit(12);
-  return (data ?? []) as PublishedFactCheck[];
+  // Tolerante a entornos de build sin Supabase real (CI E2E job).
+  // En prod (Vercel) las env vars existen y la query corre normal.
+  try {
+    const supabase = createAdminClient();
+    // Ordenamos por fecha_origen (fecha real de la verificación) descendente,
+    // con fallback a published_at. Así la galería refleja la actualidad de los
+    // casos y queda naturalmente variada por candidato.
+    const { data } = await supabase
+      .from("fact_checks" as never)
+      .select(
+        "id, titular_falso, contexto, fact_checker_name, fact_checker_url, candidato_relacionado, fecha_origen, published_at",
+      )
+      .eq("status", "published")
+      .order("fecha_origen", { ascending: false, nullsFirst: false })
+      .order("published_at", { ascending: false })
+      .limit(12);
+    return (data ?? []) as PublishedFactCheck[];
+  } catch {
+    return [];
+  }
 }
 
 export default async function NoTeDejesSorprenderPage() {
