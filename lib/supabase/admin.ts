@@ -11,11 +11,13 @@ import type { Database } from "./database.types";
  *    (refresh JNE, anonimización, gestión de allowed_teachers)
  *  - Scripts CLI (`scripts/*`)
  *
- * Comprueba al inicio que está corriendo en server (process en undefined si
- * estás en navegador) para falla en caliente si alguien lo importa mal.
+ * Comprueba al inicio que está corriendo en Node (server o test). En browser
+ * real `process.versions.node` no existe; en jsdom (vitest) sí.
  */
 export function createAdminClient() {
-  if (typeof window !== "undefined") {
+  const isBrowser =
+    typeof process === "undefined" || !process.versions?.node;
+  if (isBrowser) {
     throw new Error("createAdminClient solo puede usarse en server-side.");
   }
 
