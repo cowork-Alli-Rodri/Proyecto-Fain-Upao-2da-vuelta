@@ -8,6 +8,18 @@ const nextConfig: NextConfig = {
   // (Phase 7) cuando todas las rutas tipadas estén estables; mientras tanto los
   // redirects usan strings.
   typedRoutes: false,
+  experimental: {
+    // Server Actions: permitir invocación desde la URL canónica del proyecto
+    // Y desde las URLs de deployment de Vercel (preview, branch deploys).
+    // Sin esto, abrir un deploy específico (preview-xxx.vercel.app) y disparar
+    // un Server Action devuelve E394 "An unexpected response was received".
+    serverActions: {
+      allowedOrigins: [
+        "proyecto-fain-upao-2da-vuelta.vercel.app",
+        "*.vercel.app",
+      ],
+    },
+  },
   images: {
     remotePatterns: [
       {

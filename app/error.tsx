@@ -21,7 +21,7 @@ export default function GlobalError({
     <html lang="es-PE">
       <body>
         <main className="min-h-screen flex items-center justify-center p-8">
-          <div className="max-w-2xl space-y-4 text-left">
+          <div className="max-w-lg space-y-4 text-center">
             <h1 className="font-display text-4xl text-[var(--color-navy-upao)]">
               Algo salió mal
             </h1>
@@ -29,11 +29,11 @@ export default function GlobalError({
               No pudimos cargar esta página. Intenta de nuevo. Si el problema persiste,
               contacta al docente del curso.
             </p>
-            <pre className="whitespace-pre-wrap rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] p-4 text-xs leading-relaxed text-[var(--color-foreground)]">
-              {error.name}: {error.message}
-              {error.digest ? `\n\nref: ${error.digest}` : ""}
-              {error.stack ? `\n\n${error.stack}` : ""}
-            </pre>
+            {error.digest ? (
+              <p className="font-mono text-xs text-[var(--color-smoke)]">
+                ref: {error.digest}
+              </p>
+            ) : null}
             <button
               type="button"
               onClick={reset}
