@@ -115,6 +115,10 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: var(--color-background);
+  /* Recorta el scroll horizontal a nivel de documento (el backdrop decorativo
+     w-[110%] lo extendía ~12px en móvil). `clip` no crea scroll-container, así
+     que no rompe `position: sticky`. Va en html porque el overflow es del doc. */
+  overflow-x: clip;
 }
 
 body {
