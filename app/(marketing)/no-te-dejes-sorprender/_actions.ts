@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { z } from "zod";
 
 import { checkRateLimit } from "@/lib/rate-limit/upstash";
@@ -69,7 +70,11 @@ export async function verifyClaim(input: unknown): Promise<Result<VerifierResult
     });
   }
 
-  const rl = await checkRateLimit(`factCheckVerify:anon`);
+  // Rate limit por IP del caller (no un balde global): evita que un solo
+  // cliente agote la cuota y deje el verificador sin servicio para todos.
+  const hdrs = await headers();
+  const ip = hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() || "anon";
+  const rl = await checkRateLimit(`factCheckVerify:${ip}`);
   if (!rl.success) {
     return err({ code: "RateLimited", retryAfterSec: rl.retryAfterSec });
   }
@@ -93,7 +98,9 @@ export async function verifyClaim(input: unknown): Promise<Result<VerifierResult
     reviews: (c.claimReview ?? []).map((r) => ({
       publisherName: r.publisher?.name ?? null,
       publisherSite: r.publisher?.site ?? null,
-      url: r.url ?? null,
+      // Solo http(s): una URL `javascript:`/`data:` del índice de Google
+      // pasaría el `z.url()` y, al renderizarse en un href, sería XSS al click.
+      url: r.url && /^https?:\/\//i.test(r.url) ? r.url : null,
       title: r.title ?? null,
       reviewDate: r.reviewDate ?? null,
       textualRating: r.textualRating ?? null,

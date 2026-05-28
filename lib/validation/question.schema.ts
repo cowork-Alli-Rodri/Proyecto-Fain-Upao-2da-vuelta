@@ -126,11 +126,12 @@ const baseFields = {
     .string()
     .min(8, "Enunciado muy corto.")
     .max(500, "Enunciado máximo 500 caracteres."),
+  // `fuente` es opcional. El admin action normaliza vacío → null, así que el
+  // schema debe aceptar null/undefined/"" (string vacío) además de texto.
   fuente: z
     .string()
     .max(240, "Fuente máximo 240 caracteres.")
-    .optional()
-    .or(z.literal("")),
+    .nullish(),
   activo: z.boolean().default(true),
 };
 

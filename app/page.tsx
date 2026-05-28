@@ -1,10 +1,12 @@
 import Link from "next/link";
 
 import { BrandBar, BrandMark } from "@/components/brand/BrandMark";
+import { AltrionCredit } from "@/components/landing/AltrionCredit";
 import { AnimatedLabel } from "@/components/landing/AnimatedLabel";
 import { DiagonalSplit } from "@/components/landing/DiagonalSplit";
 import { ElectionCountdown } from "@/components/landing/ElectionCountdown";
 import { GeometricBackdrop } from "@/components/landing/GeometricBackdrop";
+import { LandingHeaderNav } from "@/components/landing/LandingHeaderNav";
 import { MagneticButton } from "@/components/landing/MagneticButton";
 import { ParallaxAngel } from "@/components/motion/ParallaxAngel";
 import { ScrollProgress } from "@/components/motion/ScrollProgress";
@@ -26,12 +28,7 @@ export default function PortalPage() {
                 tone="onDark"
               />
             </Link>
-            <Link
-              href="/login"
-              className="inline-flex min-h-[44px] items-center rounded-full border border-white/40 px-4 py-2 text-sm font-medium text-white transition hover:bg-white hover:text-[var(--color-navy-upao)] sm:px-5"
-            >
-              Ingresar
-            </Link>
+            <LandingHeaderNav />
           </div>
         </header>
 
@@ -98,6 +95,10 @@ export default function PortalPage() {
                     Aprovecha el tiempo para informarte.
                   </p>
                 </div>
+              </ScrollReveal>
+
+              <ScrollReveal direction="up" delay={0.7}>
+                <AltrionCredit className="mt-10 flex justify-end pr-1 sm:mt-12" />
               </ScrollReveal>
             </aside>
           </div>

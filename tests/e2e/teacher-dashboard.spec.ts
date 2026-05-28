@@ -115,7 +115,9 @@ test.describe("US2 teacher dashboard (T083)", () => {
     await page.getByLabel(/Correo/i).fill(teacherEmail);
     await page.getByLabel(/Contraseña/i).fill(teacherPassword);
     await page.getByRole("button", { name: /^Ingresar/i }).click();
-    await page.waitForLoadState("networkidle");
+    // Espera a salir de /login (sesión establecida + redirección resuelta) antes
+    // de navegar — evita ERR_ABORTED por goto sobre una navegación en vuelo.
+    await page.waitForURL((u) => !u.pathname.startsWith("/login"), { timeout: 20_000 });
   }
 
   test("teacher ve el dashboard con KPIs y charts principales", async ({ page }) => {
@@ -150,64 +152,35 @@ test.describe("US2 teacher dashboard (T083)", () => {
     }
   });
 
-  test("export CSV descarga archivo con contenido", async ({ page }) => {
+  // El panel de export son tarjetas-enlace (<a download href="/api/export/...">),
+  // una por formato, identificadas por su título. No hay radios ni botón
+  // "Exportar". Cada click dispara una descarga.
+  async function downloadByCard(page: Page, cardName: RegExp): Promise<string> {
     await loginAsTeacher(page);
     await page.goto("/dashboard/export");
-
-    // Selecciona formato CSV
-    const csvRadio = page.getByLabel(/CSV/i).first();
-    if (await csvRadio.isVisible().catch(() => false)) {
-      await csvRadio.check();
-    }
-
     const downloadPromise = page.waitForEvent("download", { timeout: 15_000 });
-    await page.getByRole("button", { name: /Exportar|Descargar/i }).first().click();
+    await page.getByRole("link", { name: cardName }).first().click();
     const download = await downloadPromise;
-    expect(download.suggestedFilename()).toMatch(/\.csv$/i);
+    return download.suggestedFilename();
+  }
+
+  test("export Respuestas (CSV) descarga archivo .csv", async ({ page }) => {
+    const name = await downloadByCard(page, /Respuestas del cuestionario/i);
+    expect(name).toMatch(/\.csv$/i);
   });
 
-  test("export XLSX descarga archivo .xlsx", async ({ page }) => {
-    await loginAsTeacher(page);
-    await page.goto("/dashboard/export");
-
-    const xlsxRadio = page.getByLabel(/XLSX|Excel/i).first();
-    if (await xlsxRadio.isVisible().catch(() => false)) {
-      await xlsxRadio.check();
-    }
-
-    const downloadPromise = page.waitForEvent("download", { timeout: 15_000 });
-    await page.getByRole("button", { name: /Exportar|Descargar/i }).first().click();
-    const download = await downloadPromise;
-    expect(download.suggestedFilename()).toMatch(/\.xlsx$/i);
+  test("export Excel completo descarga archivo .xlsx", async ({ page }) => {
+    const name = await downloadByCard(page, /Excel completo/i);
+    expect(name).toMatch(/\.xlsx$/i);
   });
 
-  test("export HTML Canva descarga archivo .html", async ({ page }) => {
-    await loginAsTeacher(page);
-    await page.goto("/dashboard/export");
-
-    const htmlRadio = page.getByLabel(/HTML|Canva/i).first();
-    if (await htmlRadio.isVisible().catch(() => false)) {
-      await htmlRadio.check();
-    }
-
-    const downloadPromise = page.waitForEvent("download", { timeout: 15_000 });
-    await page.getByRole("button", { name: /Exportar|Descargar/i }).first().click();
-    const download = await downloadPromise;
-    expect(download.suggestedFilename()).toMatch(/\.html$/i);
+  test("export Para Canva descarga archivo .html", async ({ page }) => {
+    const name = await downloadByCard(page, /Para Canva/i);
+    expect(name).toMatch(/\.html$/i);
   });
 
-  test("export Power BI descarga ZIP con .pbids + CSV", async ({ page }) => {
-    await loginAsTeacher(page);
-    await page.goto("/dashboard/export");
-
-    const pbRadio = page.getByLabel(/Power BI|PowerBI|PBIDS|ZIP/i).first();
-    if (await pbRadio.isVisible().catch(() => false)) {
-      await pbRadio.check();
-    }
-
-    const downloadPromise = page.waitForEvent("download", { timeout: 15_000 });
-    await page.getByRole("button", { name: /Exportar|Descargar/i }).first().click();
-    const download = await downloadPromise;
-    expect(download.suggestedFilename()).toMatch(/\.zip$/i);
+  test("export Power BI · Conexión descarga archivo .pbids", async ({ page }) => {
+    const name = await downloadByCard(page, /Power BI · Conexi/i);
+    expect(name).toMatch(/\.pbids$/i);
   });
 });

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { compareSecrets } from "@/lib/auth/secret-compare";
+import { refreshFactChecks } from "@/lib/fact-check/refresh";
 import { jneRefresh } from "@/lib/jne/refresh";
 import { logger } from "@/lib/utils/logger";
 
@@ -8,10 +9,16 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * Vercel Cron handler — refresh diario de la data del JNE.
+ * Vercel Cron handler — refresh diario de la data del JNE + galería de
+ * fact-checks.
  *
  * Schedule en `vercel.json`: `0 4 * * *` (04:00 UTC = 23:00 Lima).
  * Auth: header `Authorization: Bearer ${CRON_SECRET}`.
+ *
+ * El refresh de fact-checks va piggyback aquí (no en su propio cron) porque el
+ * plan Hobby de Vercel limita a 2 cron jobs. Es independiente: si Google falla,
+ * la galería conserva lo que tenía y el JNE sigue su curso. Para correrlo on-
+ * demand existe `GET /api/cron/fact-checks-refresh` (mismo CRON_SECRET).
  *
  * Devuelve JSON con un resumen; Sentry captura los errores inesperados.
  * Si JNE falla, la DB conserva la última copia válida (FR-035).
@@ -29,9 +36,19 @@ export async function GET(request: Request) {
   logger.info("jne-refresh cron started", { correlationId });
   const result = await jneRefresh({ triggeredBy: "cron" });
 
+  // Fact-checks: best-effort, nunca tumba el resultado del JNE.
+  let factChecks: Awaited<ReturnType<typeof refreshFactChecks>> | { error: string };
+  try {
+    factChecks = await refreshFactChecks();
+    logger.info("fact-checks refresh (piggyback) done", { correlationId, ...factChecks });
+  } catch (e) {
+    factChecks = { error: e instanceof Error ? e.message : "unknown" };
+    logger.error("fact-checks refresh (piggyback) threw", { correlationId, error: factChecks.error });
+  }
+
   if (result.ok) {
     logger.info("jne-refresh cron success", { correlationId, ...result.summary });
-    return NextResponse.json({ status: "success", ...result.summary });
+    return NextResponse.json({ status: "success", ...result.summary, factChecks });
   }
 
   logger.error("jne-refresh cron failed", {

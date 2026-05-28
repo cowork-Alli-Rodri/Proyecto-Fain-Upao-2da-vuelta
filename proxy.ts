@@ -142,6 +142,6 @@ export const config = {
      * - public files in app/
      * - api routes (manejan auth por sí mismos)
      */
-    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|icon|apple-icon|api|pixart|candidates|parties).*)",
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|icon|apple-icon|api|pixart|candidates|parties|brand).*)",
   ],
 };

@@ -9,6 +9,11 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./tests/setup.ts"],
     globals: true,
+    // Los tests de integración comparten una sola DB Supabase local y mutan
+    // estado global (app_settings, anonimización de TODOS los perfiles). Deben
+    // correr en serie para no interferir entre archivos. Los unit son rápidos,
+    // así que el costo de serializar todo es despreciable.
+    fileParallelism: false,
     include: ["tests/unit/**/*.test.{ts,tsx}", "tests/integration/**/*.test.{ts,tsx}"],
     exclude: [
       "node_modules/**",

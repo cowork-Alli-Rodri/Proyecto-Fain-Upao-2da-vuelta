@@ -106,7 +106,7 @@ export function ElectionCountdown({
       role="timer"
       aria-label="Cuenta regresiva hasta la Segunda Vuelta Electoral 2026"
     >
-      <Slot value={String(remaining.days).padStart(3, "0")} label="Días" big tone={tone} />
+      <Slot value={String(remaining.days).padStart(2, "0")} label="Días" big tone={tone} />
       <Slot value={String(remaining.hours).padStart(2, "0")} label="Horas" tone={tone} />
       <Slot value={String(remaining.minutes).padStart(2, "0")} label="Min" tone={tone} />
       {showSeconds && (

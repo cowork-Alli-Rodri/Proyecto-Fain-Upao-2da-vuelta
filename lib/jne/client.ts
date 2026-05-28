@@ -59,6 +59,9 @@ export class JneClient {
       timeoutMs?: number;
       userAgent?: string;
       fetch?: typeof fetch;
+      /** Backoff entre reintentos (ms). Inyectable para tests (ej. [0, 0]) y así
+       *  no parchear `globalThis.setTimeout`, que desestabiliza timers de Node. */
+      retryDelaysMs?: number[];
     } = {},
   ) {}
 
@@ -68,6 +71,10 @@ export class JneClient {
 
   private get timeoutMs(): number {
     return this.options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  }
+
+  private get retryDelays(): number[] {
+    return this.options.retryDelaysMs ?? RETRY_DELAYS_MS;
   }
 
   private get fetchImpl(): typeof fetch {
@@ -108,7 +115,8 @@ export class JneClient {
   private async fetchJson(url: string, body: unknown): Promise<unknown> {
     let lastError: unknown = null;
 
-    for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+    const retryDelays = this.retryDelays;
+    for (let attempt = 0; attempt <= retryDelays.length; attempt++) {
       try {
         const response = await this.rawFetch(url, body);
 
@@ -132,7 +140,7 @@ export class JneClient {
           throw e;
         }
 
-        const delay = RETRY_DELAYS_MS[attempt];
+        const delay = retryDelays[attempt];
         if (delay === undefined) break;
         await sleep(delay);
       }

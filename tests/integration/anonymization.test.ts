@@ -40,9 +40,9 @@ async function createTestStudent(
       nombres: `Nombre-${suffix}`,
       apellidos: `Apellido-${suffix}`,
       facultad: "Ingeniería",
-      carrera: "Ingeniería de Sistemas",
+      carrera: "Ingeniería de Software",
       ciclo: 5,
-      rango_edad: "18-22",
+      rango_edad: "20-22",
     })
     .eq("id", data.user.id);
 

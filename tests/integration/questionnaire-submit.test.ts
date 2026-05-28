@@ -47,11 +47,12 @@ const isLocal =
       if (error || !created.user) throw error ?? new Error("No se creó usuario");
       studentId = created.user.id;
 
-      // 2 preguntas activas exclusivas del test (orden muy alto para no chocar con seeds)
+      // 2 preguntas activas exclusivas del test. orden alto para no chocar con
+      // seeds (1-7) pero dentro de smallint (máx 32767) y del CHECK ≤ 200.
       const { data: q1 } = await supabase
         .from("questions")
         .insert({
-          orden: 99001,
+          orden: 199,
           dimension_tematica: "social",
           tipo: "likert",
           enunciado: "Test pregunta 1 (submit)",
@@ -65,7 +66,7 @@ const isLocal =
       const { data: q2 } = await supabase
         .from("questions")
         .insert({
-          orden: 99002,
+          orden: 200,
           dimension_tematica: "economica",
           tipo: "likert",
           enunciado: "Test pregunta 2 (submit)",

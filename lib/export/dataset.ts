@@ -230,6 +230,20 @@ export interface PivotedAnswerCell {
   dimension_cuestionario_snapshot: string | null;
 }
 
+/**
+ * Extrae el número de un `valor` de answer. Las respuestas Likert se guardan
+ * como `{ value: 5 }` (JSONB), no como número plano. Soporta ambos shapes por
+ * si hay filas legacy con número directo.
+ */
+function numericValue(v: unknown): number | null {
+  if (typeof v === "number") return v;
+  if (v && typeof v === "object" && "value" in v) {
+    const inner = (v as { value: unknown }).value;
+    return typeof inner === "number" ? inner : null;
+  }
+  return null;
+}
+
 export function pivotAnswersByStudent(
   answers: ExportAnswer[],
 ): Map<string, Map<string, PivotedAnswerCell>> {
@@ -255,8 +269,8 @@ export function pivotAnswersByStudent(
   for (const byQ of out.values()) {
     for (const cell of byQ.values()) {
       if (cell.tipo !== "likert") continue;
-      const preNum = typeof cell.pre === "number" ? cell.pre : null;
-      const postNum = typeof cell.post === "number" ? cell.post : null;
+      const preNum = numericValue(cell.pre);
+      const postNum = numericValue(cell.post);
       if (preNum !== null && postNum !== null) cell.delta = postNum - preNum;
     }
   }

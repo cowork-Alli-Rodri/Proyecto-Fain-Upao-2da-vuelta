@@ -45,23 +45,14 @@ const isLocal =
         return new Response("Internal Server Error", { status: 500 });
       };
 
+      // Backoff de 0ms inyectado (sin parchear globalThis.setTimeout, que
+      // desestabilizaba timers internos de Node y dejaba un error de teardown).
       const client = new JneClient(createMemoryTokenStore(), {
         fetch: failingFetch,
+        retryDelaysMs: [0, 0],
       });
 
-      // Para no esperar el backoff completo, monkey-patch setTimeout dentro
-      // del cliente. (Vitest no permite stub global persistente entre tests
-      // sin afterEach, así que lo hacemos inline.)
-      const originalSetTimeout = globalThis.setTimeout;
-      globalThis.setTimeout = ((fn: () => void) =>
-        originalSetTimeout(fn, 0)) as unknown as typeof globalThis.setTimeout;
-
-      let result;
-      try {
-        result = await jneRefresh({ triggeredBy: "admin", client });
-      } finally {
-        globalThis.setTimeout = originalSetTimeout;
-      }
+      const result = await jneRefresh({ triggeredBy: "admin", client });
 
       expect(result.ok).toBe(false);
       if (result.ok) return;

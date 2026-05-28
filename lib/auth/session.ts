@@ -76,7 +76,9 @@ export async function resolveStudentResumePath(userId: string): Promise<string> 
   if (!profileRaw) return "/login";
   const profile = profileRaw as unknown as ProfileFlowState;
 
-  // Staff: nunca vive en el flujo de estudiante.
+  // Staff: nunca vive en el flujo de estudiante. Admin aterriza en su panel;
+  // teacher va directo al dashboard del curso.
+  if (profile.role === "admin") return "/admin";
   if (profile.role !== "student") return "/dashboard";
 
   // 1. Perfil incompleto

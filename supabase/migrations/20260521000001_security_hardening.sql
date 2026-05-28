@@ -83,7 +83,20 @@ REVOKE EXECUTE ON FUNCTION public.current_role() FROM anon, authenticated, PUBLI
 
 REVOKE EXECUTE ON FUNCTION public.handle_new_user() FROM anon, authenticated, PUBLIC;
 
-REVOKE EXECUTE ON FUNCTION public.rls_auto_enable() FROM anon, authenticated, PUBLIC;
+-- `rls_auto_enable()` puede no existir en un apply desde cero (no la crea
+-- ninguna migración del repo). El REVOKE incondicional rompía `db reset` /
+-- rebuild de prod. Se hace condicional: idempotente y seguro (prod ya aplicó
+-- esta migración, no se re-ejecuta).
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_proc p
+    JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public' AND p.proname = 'rls_auto_enable'
+  ) THEN
+    REVOKE EXECUTE ON FUNCTION public.rls_auto_enable() FROM anon, authenticated, PUBLIC;
+  END IF;
+END $$;
 
 -- `current_role()` SÍ debe ser ejecutable por authenticated porque las RLS
 -- policies la invocan internamente al evaluar `public.current_role() = 'admin'`.

@@ -598,38 +598,6 @@ export type Database = {
           },
         ]
       }
-      mv_evolucion_temporal: {
-        Row: {
-          candidato: string | null
-          fecha: string | null
-          metrica: string | null
-          n: number | null
-        }
-        Relationships: []
-      }
-      mv_kpis_curso: {
-        Row: {
-          confianza_promedio: number | null
-          singleton_key: number | null
-          total_completaron_candidatos: number | null
-          total_completaron_post: number | null
-          total_completaron_pre: number | null
-          total_completaron_sin_preferencia: number | null
-          total_inscritos: number | null
-          total_preferencias: number | null
-        }
-        Relationships: []
-      }
-      mv_preferencia_por_carrera: {
-        Row: {
-          candidato_preferido: string | null
-          carrera: string | null
-          confianza_promedio: number | null
-          facultad: string | null
-          n: number | null
-        }
-        Relationships: []
-      }
     }
     Functions: {
       hash_opaque_user_id: { Args: { user_uuid: string }; Returns: string }

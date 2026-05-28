@@ -6,9 +6,12 @@ import type { NextConfig } from "next";
 // abrir cualquier deployment URL (preview-xxx-team.vercel.app) y disparar un
 // Server Action devuelve E394 "An unexpected response was received from the
 // server" porque Next.js no encuentra el host en la whitelist.
+// Hosts concretos, sin wildcard. `*.vercel.app` aceptaría cualquier subdominio
+// vercel.app como origen válido para Server Actions, debilitando la protección
+// CSRF. La canónica + las URLs que Vercel inyecta (deployment propio, branch y
+// producción) cubren prod y previews sin abrir la puerta a orígenes ajenos.
 const serverActionAllowedOrigins = [
   "proyecto-fain-upao-2da-vuelta.vercel.app",
-  "*.vercel.app",
   process.env.VERCEL_URL,
   process.env.VERCEL_BRANCH_URL,
   process.env.VERCEL_PROJECT_PRODUCTION_URL,
@@ -45,6 +48,17 @@ const nextConfig: NextConfig = {
     // CSP — defensa en profundidad contra XSS. Inline styles/scripts permitidos
     // porque Next.js + Tailwind 4 los necesita; el resto restringido a self +
     // dominios concretos (Supabase Storage, JNE imágenes, PostHog).
+    //
+    // Se permite el Supabase local (`supabase start` → 127.0.0.1:54321) en
+    // connect-src SOLO cuando la URL de Supabase apunta a localhost; sin esto el
+    // login contra la DB local falla con "Failed to fetch" por CSP. Se basa en
+    // la URL (no en NODE_ENV) para que también funcione un build de producción
+    // apuntado a la DB local (e2e). Un deploy real (*.supabase.co) nunca la activa.
+    const supaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+    const localSupabase =
+      supaUrl.includes("127.0.0.1") || supaUrl.includes("localhost")
+        ? " http://127.0.0.1:54321 http://localhost:54321 ws://127.0.0.1:54321 ws://localhost:54321"
+        : "";
     const cspDirectives = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.posthog.com https://challenges.cloudflare.com",
@@ -53,7 +67,7 @@ const nextConfig: NextConfig = {
       "font-src 'self' data:",
       // connect-src incluye Google Fact Check Tools (verificador) + ambos
       // subdominios del JNE (web.jne.gob.pe legacy + votoinformadoia.jne.gob.pe nuevo).
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.posthog.com https://*.sentry.io https://*.jne.gob.pe https://factchecktools.googleapis.com",
+      `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.posthog.com https://*.sentry.io https://*.jne.gob.pe https://factchecktools.googleapis.com${localSupabase}`,
       // frame-src incluye votoinformadoia.jne.gob.pe para embed de PDFs de
       // planes de gobierno (modal "Plan de Gobierno" en /candidatos).
       "frame-src 'self' https://challenges.cloudflare.com https://*.jne.gob.pe",
@@ -61,7 +75,7 @@ const nextConfig: NextConfig = {
       "media-src 'self' https://jne-videos-publicos.s3.us-east-2.amazonaws.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
-      "form-action 'self' https://*.vercel.app",
+      "form-action 'self'",
       "object-src 'none'",
       "upgrade-insecure-requests",
     ].join("; ");

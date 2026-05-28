@@ -72,24 +72,25 @@ test.describe("Admin gestión de preguntas (T109)", () => {
     });
 
     test("admin crea, edita y desactiva una pregunta", async ({ page }) => {
-      // 1) Login
+      // 1) Login — espera a salir de /login (sesión establecida) antes de seguir.
       await page.goto("/login");
       await page.getByLabel(/Correo/i).fill(adminEmail);
       await page.getByLabel(/Contraseña/i).fill(adminPassword);
       await page.getByRole("button", { name: /^Ingresar/i }).click();
-      await page.waitForLoadState("networkidle");
+      await page.waitForURL((u) => !u.pathname.startsWith("/login"), { timeout: 20_000 });
 
       // 2) Navegar a /admin/preguntas/nueva
       await page.goto("/admin/preguntas/nueva");
       await expect(page).toHaveURL(/\/admin\/preguntas\/nueva$/);
 
-      // Llenar formulario mínimo: enunciado + dimensión + tipo (likert por defecto)
-      const enunciadoInput = page.getByLabel(/Enunciado|Pregunta/i).first();
+      // El enunciado es el textarea #enunciado (label "Texto de la pregunta").
+      // Nota: no usar getByLabel(/Pregunta/) — matchea también "Tipo de pregunta".
+      const enunciadoInput = page.locator("#enunciado");
       await enunciadoInput.fill(testEnunciado);
 
-      // Submit
+      // Submit — espera la redirección al LISTADO (no /nueva, donde estamos).
       await page.getByRole("button", { name: /Crear|Guardar/i }).first().click();
-      await page.waitForURL(/\/admin\/preguntas/, { timeout: 10_000 });
+      await page.waitForURL(/\/admin\/preguntas(\?|$)/, { timeout: 15_000 });
 
       // 3) Buscar la pregunta en DB para guardar id (cleanup)
       const { data: q } = await admin
@@ -103,7 +104,7 @@ test.describe("Admin gestión de preguntas (T109)", () => {
 
       // 4) Editar la pregunta
       await page.goto(`/admin/preguntas/${qId}`);
-      const editInput = page.getByLabel(/Enunciado|Pregunta/i).first();
+      const editInput = page.locator("#enunciado");
       await editInput.fill(testEnunciadoEditado);
       await page.getByRole("button", { name: /Guardar|Actualizar/i }).first().click();
       await page.waitForLoadState("networkidle");

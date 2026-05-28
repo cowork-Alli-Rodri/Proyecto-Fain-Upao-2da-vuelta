@@ -1,11 +1,12 @@
 /**
- * Integration test — Vistas materializadas del dashboard (T081).
+ * Integration test — Capa de datos del dashboard del docente (T081).
  *
- * Inserta un mini-dataset (5 estudiantes con preferencias), refresca las
- * vistas materializadas, y verifica:
- *   - mv_kpis_curso: conteos correctos
- *   - mv_preferencia_por_carrera: agrupación correcta
- *   - mv_evolucion_temporal: una entrada por día/candidato
+ * Antes este test verificaba las materialized views mv_kpis_curso /
+ * mv_preferencia_por_carrera / mv_evolucion_temporal vía un RPC
+ * `refresh_dashboard_views` que no existe. Esas MVs quedaron obsoletas: el
+ * dashboard real lee de las tablas en JS (`lib/dashboard/queries.ts`). Este
+ * test ahora ejercita esas funciones reales contra datos sembrados, que es lo
+ * que efectivamente corre en producción.
  *
  * Requiere Supabase local (`pnpm exec supabase start`). Auto-skip si no detecta.
  */
@@ -13,6 +14,12 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
+import {
+  getCareerCrosstab,
+  getKpiSummary,
+  getPreferenceDistribution,
+} from "@/lib/dashboard/queries";
+import { parseFilters } from "@/lib/dashboard/filters";
 import type { Database } from "@/lib/supabase/database.types";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -20,160 +27,96 @@ const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const isLocal =
   !!url && (url.includes("127.0.0.1") || url.includes("localhost")) && !!serviceKey;
 
-interface StudentSpec {
-  id: string;
-  email: string;
-  facultad: string;
-  carrera: string;
-  candidato: "keiko" | "roberto" | "indeciso" | null; // null = no preference
-  submittedAt: string; // ISO
-  completed: boolean;
-}
+const NO_FILTERS = parseFilters(new URLSearchParams());
 
-(isLocal ? describe : describe.skip)(
-  "Materialized views del dashboard (T081)",
-  () => {
-    let supabase: SupabaseClient<Database>;
-    const created: string[] = [];
+(isLocal ? describe : describe.skip)("Dashboard data layer (T081)", () => {
+  let supabase: SupabaseClient<Database>;
+  const created: string[] = [];
 
-    const dataset: Omit<StudentSpec, "id" | "email">[] = [
-      {
-        facultad: "Facultad de Ingeniería",
-        carrera: "Ingeniería de Sistemas",
-        candidato: "keiko",
-        submittedAt: "2026-05-20T11:00:00Z",
-        completed: true,
-      },
-      {
-        facultad: "Facultad de Ingeniería",
-        carrera: "Ingeniería de Sistemas",
-        candidato: "roberto",
-        submittedAt: "2026-05-20T13:00:00Z",
-        completed: true,
-      },
-      {
-        facultad: "Facultad de Derecho",
-        carrera: "Derecho",
-        candidato: "keiko",
-        submittedAt: "2026-05-21T10:00:00Z",
-        completed: true,
-      },
-      {
-        facultad: "Facultad de Derecho",
-        carrera: "Derecho",
-        candidato: "indeciso",
-        submittedAt: "2026-05-21T15:00:00Z",
-        completed: true,
-      },
-      {
-        facultad: "Facultad de Ingeniería",
-        carrera: "Ingeniería de Sistemas",
-        candidato: null, // completó cuestionario pero no declaró preferencia
-        submittedAt: "2026-05-20T16:00:00Z",
-        completed: true,
-      },
-    ];
+  const dataset: Array<{
+    facultad: string;
+    carrera: string;
+    candidato: "keiko" | "roberto" | "indeciso" | null;
+  }> = [
+    { facultad: "Ingeniería", carrera: "Ingeniería de Software", candidato: "keiko" },
+    { facultad: "Ingeniería", carrera: "Ingeniería de Software", candidato: "roberto" },
+    { facultad: "Derecho y Ciencias Políticas", carrera: "Derecho", candidato: "keiko" },
+    { facultad: "Derecho y Ciencias Políticas", carrera: "Derecho", candidato: "indeciso" },
+    { facultad: "Ingeniería", carrera: "Ingeniería de Software", candidato: null },
+  ];
 
-    beforeAll(async () => {
-      supabase = createClient<Database>(url!, serviceKey!, {
-        auth: { autoRefreshToken: false, persistSession: false },
+  beforeAll(async () => {
+    supabase = createClient<Database>(url!, serviceKey!, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+
+    const now = new Date().toISOString();
+    for (let i = 0; i < dataset.length; i += 1) {
+      const spec = dataset[i]!;
+      const { data: u, error } = await supabase.auth.admin.createUser({
+        email: `dash-q-${Date.now()}-${i}@example.test`,
+        password: "TestPassword!2026",
+        email_confirm: true,
       });
+      if (error || !u.user) throw error ?? new Error("No se creó user");
+      const id = u.user.id;
+      created.push(id);
 
-      for (let i = 0; i < dataset.length; i += 1) {
-        const spec = dataset[i]!;
-        const email = `dash-mv-${Date.now()}-${i}@example.test`;
-        const { data: created_, error } = await supabase.auth.admin.createUser({
-          email,
-          password: "TestPassword!2026",
-          email_confirm: true,
-        });
-        if (error || !created_.user) throw error ?? new Error("No se creó user");
-        const id = created_.user.id;
-        created.push(id);
+      await supabase
+        .from("profiles")
+        .update({
+          facultad: spec.facultad,
+          carrera: spec.carrera,
+          ciclo: 5,
+          rango_edad: "20-22",
+          questionnaire_pre_completed_at: now,
+          candidatos_completed_at: now,
+          questionnaire_post_completed_at: now,
+        } as never)
+        .eq("id", id);
 
-        await supabase
-          .from("profiles")
-          .update({
-            facultad: spec.facultad,
-            carrera: spec.carrera,
-            ciclo: 5,
-            rango_edad: "18-22",
-            current_step: 12,
-            questionnaire_completed_at: spec.completed ? spec.submittedAt : null,
-          })
-          .eq("id", id);
-
-        if (spec.candidato) {
-          await supabase.from("preferences").insert({
-            student_id: id,
-            candidato_preferido: spec.candidato,
-            confianza: 7,
-            submitted_at: spec.submittedAt,
-          } as never);
-        }
+      if (spec.candidato) {
+        await supabase.from("preferences").insert({
+          student_id: id,
+          candidato_preferido: spec.candidato,
+          confianza: 7,
+        } as never);
       }
+    }
+  });
 
-      // Refresh CONCURRENTLY las 4 vistas
-      try {
-        await supabase.rpc("refresh_dashboard_views" as never);
-      } catch {
-        // Si no existe la RPC, refresca con SQL bruto (cada CREATE INDEX UNIQUE
-        // ya está creado al instalar la migración).
-        const sql = `
-          REFRESH MATERIALIZED VIEW CONCURRENTLY public.mv_kpis_curso;
-          REFRESH MATERIALIZED VIEW CONCURRENTLY public.mv_preferencia_por_carrera;
-          REFRESH MATERIALIZED VIEW CONCURRENTLY public.mv_evolucion_temporal;
-        `;
-        // Fallback: ejecutar via REST endpoint pg-meta no es directo; el test asume
-        // que ya hay una RPC `refresh_dashboard_views()`. Si no, el caller debe
-        // hacer REFRESH antes (vía CLI o psql).
-        void sql;
-      }
-    });
+  afterAll(async () => {
+    for (const id of created) {
+      await supabase.from("preferences").delete().eq("student_id", id);
+      await supabase.auth.admin.deleteUser(id);
+    }
+  });
 
-    afterAll(async () => {
-      for (const id of created) {
-        await supabase.from("preferences").delete().eq("student_id", id);
-        await supabase.auth.admin.deleteUser(id);
-      }
-    });
+  it("getKpiSummary cuenta inscritos, completaron pre/post y preferencias", async () => {
+    const kpis = await getKpiSummary(NO_FILTERS);
+    expect(kpis.total_inscritos).toBeGreaterThanOrEqual(5);
+    expect(kpis.total_completaron_pre).toBeGreaterThanOrEqual(5);
+    expect(kpis.total_completaron_post).toBeGreaterThanOrEqual(5);
+    expect(kpis.total_preferencias).toBeGreaterThanOrEqual(4);
+  });
 
-    it("mv_kpis_curso refleja el conteo total de inscritos y preferencias", async () => {
-      const { data } = await supabase.from("mv_kpis_curso" as never).select("*");
-      const rows = (data ?? []) as Array<{
-        total_inscritos: number;
-        total_preferencias: number;
-      }>;
-      expect(rows.length).toBeGreaterThan(0);
-      const row = rows[0]!;
-      expect(row.total_inscritos).toBeGreaterThanOrEqual(5);
-      expect(row.total_preferencias).toBeGreaterThanOrEqual(4);
-    });
+  it("getPreferenceDistribution agrega por candidato con porcentajes", async () => {
+    const dist = await getPreferenceDistribution(NO_FILTERS);
+    const keiko = dist.find((d) => d.candidato === "keiko");
+    const roberto = dist.find((d) => d.candidato === "roberto");
+    expect(keiko?.n ?? 0).toBeGreaterThanOrEqual(2);
+    expect(roberto?.n ?? 0).toBeGreaterThanOrEqual(1);
+    const totalPct = dist.reduce((a, d) => a + d.pct, 0);
+    expect(totalPct).toBeGreaterThan(0);
+  });
 
-    it("mv_preferencia_por_carrera agrupa por (facultad, carrera, candidato)", async () => {
-      const { data } = await supabase
-        .from("mv_preferencia_por_carrera" as never)
-        .select("*");
-      const rows = (data ?? []) as Array<{
-        facultad: string;
-        carrera: string;
-        candidato_preferido: string;
-        n: number;
-      }>;
-      const find = (fac: string, car: string, cand: string) =>
-        rows.find(
-          (r) =>
-            r.facultad === fac && r.carrera === car && r.candidato_preferido === cand,
-        );
-      expect(find("Facultad de Ingeniería", "Ingeniería de Sistemas", "keiko")?.n ?? 0).toBeGreaterThanOrEqual(1);
-      expect(find("Facultad de Derecho", "Derecho", "keiko")?.n ?? 0).toBeGreaterThanOrEqual(1);
-    });
-
-    it("mv_evolucion_temporal incluye al menos 2 días distintos", async () => {
-      const { data } = await supabase.from("mv_evolucion_temporal" as never).select("*");
-      const rows = (data ?? []) as Array<{ fecha: string }>;
-      const dias = new Set(rows.map((r) => r.fecha));
-      expect(dias.size).toBeGreaterThanOrEqual(2);
-    });
-  },
-);
+  it("getCareerCrosstab agrupa por (facultad, carrera) con cruce de candidato", async () => {
+    const rows = await getCareerCrosstab(NO_FILTERS);
+    const ing = rows.find(
+      (r) => r.facultad === "Ingeniería" && r.carrera === "Ingeniería de Software",
+    );
+    expect(ing).toBeTruthy();
+    expect(ing!.total).toBeGreaterThanOrEqual(3);
+    expect(ing!.keiko).toBeGreaterThanOrEqual(1);
+  });
+});

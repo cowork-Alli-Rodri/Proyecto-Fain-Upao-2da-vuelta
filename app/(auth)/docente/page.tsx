@@ -28,7 +28,10 @@ export default async function DocenteAccessPage() {
       .single();
     currentRole = (data as { role?: typeof currentRole } | null)?.role ?? null;
 
-    if (currentRole === "teacher" || currentRole === "admin") {
+    if (currentRole === "admin") {
+      redirect("/admin");
+    }
+    if (currentRole === "teacher") {
       redirect("/dashboard");
     }
   }
