@@ -5,6 +5,7 @@ import { BrandBar, BrandMark } from "@/components/brand/BrandMark";
 import { createClient } from "@/lib/supabase/server";
 
 import { CandidatosSplitView } from "./_components/CandidatosSplitView";
+import { PlanResumenSection } from "./_components/PlanResumenSection";
 import { StudentDimensionTracker } from "./_components/StudentDimensionTracker";
 
 export const metadata: Metadata = {
@@ -88,6 +89,8 @@ export default async function CandidatosPage() {
       </header>
 
       <CandidatosSplitView />
+
+      <PlanResumenSection />
 
       {studentContext.show ? (
         <StudentDimensionTracker
