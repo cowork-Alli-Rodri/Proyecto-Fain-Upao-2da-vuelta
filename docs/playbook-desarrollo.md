@@ -156,10 +156,14 @@ galería de fact-checks; exportaciones (CSV/XLSX/HTML/PowerBI); resumen oficial 
 planes. QA de rutas limpio (favicon, viewport móvil, error/not-found, robots/
 sitemap OK; 0 console.log).
 
-Pendientes menores / decisiones del cliente (no son bugs):
-- Estados de carga (`loading.tsx`) — polish opcional.
-- Ruta inexistente para anónimo → /login en vez de 404 (comportamiento típico de
-  middleware de Next).
-- SEO: el sitio está `noindex` global (apropiado para piloto privado). Si el
-  cliente quiere indexar las páginas públicas en Google, hay que quitar
-  `robots: { index: false }` del layout en esas rutas.
+Estado y decisiones (mayo 2026):
+- Estados de carga (`loading.tsx`): añadidos (dashboard, candidatos, admin).
+- Ruta inexistente de anónimo: ahora cae al 404 de Next (antes iba a /login).
+- SEO: páginas públicas indexables (`robots: index`); privadas siguen `noindex`.
+- Overflow horizontal en móvil: corregido con `overflow-x: clip` en `body`.
+- **Contraste de color (WCAG AA) — DECISIÓN DEL CLIENTE (opción B):** los acentos
+  de marca (orange #e96a25, coral #ff436b, cyan-deep #008da9) usados como texto
+  chico sobre blanco quedan en ~3.2-3.9 (req 4.5). Se acepta la paleta tal cual;
+  NO cumple AA estricto en texto chico. No reabrir como bug en futuras auditorías
+  salvo pedido explícito del cliente (la alternativa sería definir variantes más
+  oscuras de cada acento solo para texto chico).

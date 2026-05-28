@@ -125,6 +125,10 @@ body {
   line-height: 1.6;
   font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
   min-height: 100vh;
+  /* Recorta el sobrante horizontal de elementos decorativos (ej. backdrop
+     w-[110%]) que en móvil causaba ~12px de scroll lateral. `clip` (no `hidden`)
+     no crea scroll-container, así no rompe el header `position: sticky`. */
+  overflow-x: clip;
 }
 
 ::selection {
