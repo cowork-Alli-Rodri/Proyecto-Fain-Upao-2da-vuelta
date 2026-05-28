@@ -51,9 +51,12 @@ export async function LandingHeaderNav() {
           {primary.label}
         </Link>
       ) : null}
-      <Link href="/auth/signout" prefetch={false} className={LOGOUT_LINK}>
+      {/* <a> nativo (no <Link>): fuerza navegación completa para que el signout
+          server-side limpie cookies y la landing se re-renderice sin sesión. Con
+          <Link> el router client-side reusa el RSC cacheado y el header no cambia. */}
+      <a href="/auth/signout" className={LOGOUT_LINK}>
         Cerrar sesión
-      </Link>
+      </a>
     </div>
   );
 }

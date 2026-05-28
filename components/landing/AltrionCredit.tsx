@@ -22,7 +22,7 @@ export function AltrionCredit({ className = "" }: { className?: string }) {
           Desarrollado por
         </span>
         <Image
-          src="/brand/altrion-partners.png"
+          src="/brand/altrion-partners-white.png"
           alt="Altrion Partners"
           width={1219}
           height={356}
