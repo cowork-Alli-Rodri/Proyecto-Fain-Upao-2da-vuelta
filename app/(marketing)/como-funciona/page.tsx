@@ -9,6 +9,7 @@ import { ScrollProgress } from "@/components/motion/ScrollProgress";
 import { StickyStoryteller, type Step } from "@/components/landing/StickyStoryteller";
 
 export const metadata: Metadata = {
+  robots: { index: true, follow: true },
   title: "Cómo funciona",
   description:
     "Cuatro pasos para analizar los planes oficiales del JNE y aprender a detectar información falsa antes de decidir: identifícate, responde, analiza y decide bien.",

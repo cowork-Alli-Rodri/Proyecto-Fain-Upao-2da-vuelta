@@ -10,6 +10,7 @@ import { ScrollReveal } from "@/components/motion/ScrollReveal";
 import { HeroVideo } from "./_components/HeroVideo";
 
 export const metadata: Metadata = {
+  robots: { index: true, follow: true },
   title: "Inicio · Analiza y decide bien",
   description:
     "Primero tu postura, después los planes oficiales del JNE de Fuerza Popular y Juntos por el Perú, al final tu decisión informada. Sin opiniones nuestras.",

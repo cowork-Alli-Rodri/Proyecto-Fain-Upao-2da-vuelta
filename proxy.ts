@@ -53,9 +53,16 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  const isProtected = [
+    ...STUDENT_ONLY_PATHS,
+    ...TEACHER_ADMIN_PATHS,
+    ...ADMIN_ONLY_PATHS,
+  ].some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
-  // No autenticado en ruta protegida → /login
-  if (!user && !isPublic) {
+  // No autenticado en una ruta protegida CONOCIDA → /login.
+  // Rutas desconocidas (ni públicas ni protegidas) no se redirigen: caen al
+  // not-found de Next (404) en vez de mandar a /login a quien escribió mal la URL.
+  if (!user && isProtected) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("next", pathname);

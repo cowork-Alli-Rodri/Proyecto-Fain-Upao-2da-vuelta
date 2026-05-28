@@ -9,6 +9,7 @@ import { FactCheckGallery, type PublishedFactCheck } from "./_components/FactChe
 import { VerifierForm } from "./_components/VerifierForm";
 
 export const metadata: Metadata = {
+  robots: { index: true, follow: true },
   title: "No te dejes sorprender",
   description:
     "Verificador automático de noticias electorales. Pega un titular o frase y consultamos la red mundial de fact-checkers (Google Fact Check Tools) para mostrarte si la afirmación ya fue chequeada como verdadera, falsa o engañosa.",

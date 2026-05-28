@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { BrandBar, BrandMark } from "@/components/brand/BrandMark";
@@ -11,6 +12,10 @@ import { MagneticButton } from "@/components/landing/MagneticButton";
 import { ParallaxAngel } from "@/components/motion/ParallaxAngel";
 import { ScrollProgress } from "@/components/motion/ScrollProgress";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
+
+export const metadata: Metadata = {
+  robots: { index: true, follow: true },
+};
 
 export default function PortalPage() {
   return (

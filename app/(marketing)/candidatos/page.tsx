@@ -9,6 +9,7 @@ import { PlanResumenSection } from "./_components/PlanResumenSection";
 import { StudentDimensionTracker } from "./_components/StudentDimensionTracker";
 
 export const metadata: Metadata = {
+  robots: { index: true, follow: true },
   title: "Candidatos · Segunda Vuelta 2026",
   description:
     "Comparador oficial entre Keiko Fujimori (Fuerza Popular) y Roberto Sánchez (Juntos por el Perú): hoja de vida, plan de gobierno, video de presentación y debates JNE. Datos del Jurado Nacional de Elecciones.",
