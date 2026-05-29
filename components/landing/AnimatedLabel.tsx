@@ -4,13 +4,13 @@ import { motion, useReducedMotion } from "framer-motion";
 import type { ReactNode } from "react";
 
 /**
- * Tarjeta-etiqueta con marco editorial. Aparece con un reveal stagger:
- *  1. Línea superior tracksa de izquierda a derecha
- *  2. Texto principal hace fade-up
- *  3. Línea inferior se dibuja al final
+ * Tarjeta-etiqueta del hero. Reusa exactamente el mismo tratamiento visual que
+ * el cuadro "Cuenta regresiva" del costado: vidrio frosted (bg-white translúcido
+ * + backdrop-blur), bordes redondeados y acento naranja en el borde izquierdo.
+ * El contenido aparece con un reveal stagger (fade-up del kicker y del título).
  *
- * Pensada para usarse como pieza focal de un hero (composición tipo
- * "card framing" — marco que enmarca el título del proceso electoral).
+ * El resplandor que la hace leer como vidrio sobre el navy vive en el contenedor
+ * padre (page.tsx), igual que la cuña diagonal vive detrás del contador.
  */
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -30,20 +30,9 @@ export function AnimatedLabel({
       initial={reduce ? false : { opacity: 0, y: 16 }}
       animate={reduce ? undefined : { opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: EASE }}
-      // Vidrio frosted: gradiente blanco translúcido + backdrop-blur. Como esta
-      // etiqueta va sobre navy casi plano (a diferencia del cuadro del contador,
-      // que se apoya sobre la cuña diagonal), el fill debe ser más alto para que
-      // el panel lea como vidrio y no como un rectángulo sólido.
-      className={`relative inline-flex flex-col items-stretch bg-gradient-to-br from-white/[0.14] via-white/[0.07] to-white/[0.03] shadow-[0_18px_50px_-18px_rgba(0,0,0,0.55)] backdrop-blur-md ${className}`}
+      className={`relative inline-flex flex-col items-stretch rounded-2xl border-l-2 border-[var(--color-orange-upao)] bg-white/[0.06] backdrop-blur-sm ${className}`}
     >
-      {/* Marco editorial — translúcido coherente con el cuadro del contador */}
-      <div className="relative border-2 border-white/30 px-7 py-6 sm:px-9 sm:py-8">
-        {/* Esquinas cromadas */}
-        <Corner position="tl" />
-        <Corner position="tr" />
-        <Corner position="bl" />
-        <Corner position="br" />
-
+      <div className="relative p-6 sm:p-7">
         {kicker ? (
           <motion.p
             initial={reduce ? false : { opacity: 0, y: 8 }}
@@ -63,35 +52,6 @@ export function AnimatedLabel({
           {children}
         </motion.div>
       </div>
-
-      {/* Sweep tracksa superior */}
-      <motion.span
-        aria-hidden
-        className="pointer-events-none absolute -top-px left-0 h-[3px] bg-[var(--color-orange-upao)]"
-        initial={reduce ? { width: "30%" } : { width: 0 }}
-        animate={reduce ? undefined : { width: "30%" }}
-        transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
-      />
-      {/* Sweep tracksa inferior */}
-      <motion.span
-        aria-hidden
-        className="pointer-events-none absolute -bottom-px right-0 h-[3px] bg-[var(--color-cyan-electric)]"
-        initial={reduce ? { width: "20%" } : { width: 0 }}
-        animate={reduce ? undefined : { width: "20%" }}
-        transition={{ duration: 0.7, delay: 0.9, ease: "easeOut" }}
-      />
     </motion.div>
   );
-}
-
-function Corner({ position }: { position: "tl" | "tr" | "bl" | "br" }) {
-  const base =
-    "pointer-events-none absolute h-2.5 w-2.5 border-white/80 sm:h-3 sm:w-3";
-  const map: Record<typeof position, string> = {
-    tl: "left-[-2px] top-[-2px] border-l-2 border-t-2",
-    tr: "right-[-2px] top-[-2px] border-r-2 border-t-2",
-    bl: "left-[-2px] bottom-[-2px] border-b-2 border-l-2",
-    br: "right-[-2px] bottom-[-2px] border-b-2 border-r-2",
-  };
-  return <span aria-hidden className={`${base} ${map[position]}`} />;
 }

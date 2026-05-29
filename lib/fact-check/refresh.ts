@@ -17,6 +17,7 @@
 
 import { createAdminClient } from "../supabase/admin";
 import { searchFactChecks } from "./google";
+import { isStatisticalClaim } from "./statistical";
 
 type Candidato = "keiko" | "roberto" | "ambos" | "ninguno";
 
@@ -74,7 +75,35 @@ export interface RefreshSummary {
   candidates: number;
   inserted: number;
   skippedExisting: number;
+  /** Publicados con cifras de encuestas/estadísticas que se archivaron en esta corrida. */
+  archivedStatistical: number;
   error?: string;
+}
+
+/**
+ * Cleanup idempotente: archiva los fact-checks ya publicados que contengan
+ * datos estadísticos/de encuestas. Best-effort — si falla, no tumba el refresh.
+ * Corre en cada sync diario, así la regla se aplica también a lo ya almacenado.
+ */
+async function archiveStatisticalPublished(
+  supabase: ReturnType<typeof createAdminClient>,
+): Promise<number> {
+  const { data, error } = await supabase
+    .from("fact_checks" as never)
+    .select("id, titular_falso, contexto")
+    .eq("status", "published");
+  if (error || !data) return 0;
+
+  const ids = (data as Array<{ id: string; titular_falso: string; contexto: string }>)
+    .filter((r) => isStatisticalClaim(r.titular_falso, r.contexto))
+    .map((r) => r.id);
+  if (ids.length === 0) return 0;
+
+  const { error: updateError } = await supabase
+    .from("fact_checks" as never)
+    .update({ status: "archived" } as never)
+    .in("id", ids);
+  return updateError ? 0 : ids.length;
 }
 
 /**
@@ -115,6 +144,13 @@ async function collectCandidates(opts?: {
         const contexto = truncate(contextoBase, 1000);
         if (contexto.length < 20) continue;
 
+        // Excluimos verificaciones con cifras de encuestas/estadísticas para no
+        // instalar un sesgo de votación indirecto en la galería pública.
+        if (isStatisticalClaim(titular, contexto)) {
+          seen.add(review.url);
+          continue;
+        }
+
         seen.add(review.url);
         rows.push({
           titular_falso: titular,
@@ -143,15 +179,26 @@ export async function refreshFactChecks(opts?: { fetch?: typeof fetch }): Promis
       candidates: 0,
       inserted: 0,
       skippedExisting: 0,
+      archivedStatistical: 0,
       error: error ?? "Google no devolvió resultados utilizables.",
     };
   }
 
-  if (rows.length === 0) {
-    return { ok: true, queriesRun, candidates: 0, inserted: 0, skippedExisting: 0 };
-  }
-
   const supabase = createAdminClient();
+
+  // Cleanup primero: aplica la regla a lo ya publicado, corra o no haya filas nuevas.
+  const archivedStatistical = await archiveStatisticalPublished(supabase);
+
+  if (rows.length === 0) {
+    return {
+      ok: true,
+      queriesRun,
+      candidates: 0,
+      inserted: 0,
+      skippedExisting: 0,
+      archivedStatistical,
+    };
+  }
 
   // URLs ya presentes (cualquier status) para no duplicar ni resucitar archivados.
   const { data: existingRaw, error: selectError } = await supabase
@@ -164,6 +211,7 @@ export async function refreshFactChecks(opts?: { fetch?: typeof fetch }): Promis
       candidates: rows.length,
       inserted: 0,
       skippedExisting: 0,
+      archivedStatistical,
       error: `No se pudo leer fact_checks existentes: ${selectError.message}`,
     };
   }
@@ -175,7 +223,14 @@ export async function refreshFactChecks(opts?: { fetch?: typeof fetch }): Promis
   const skippedExisting = rows.length - toInsert.length;
 
   if (toInsert.length === 0) {
-    return { ok: true, queriesRun, candidates: rows.length, inserted: 0, skippedExisting };
+    return {
+      ok: true,
+      queriesRun,
+      candidates: rows.length,
+      inserted: 0,
+      skippedExisting,
+      archivedStatistical,
+    };
   }
 
   const { error: insertError } = await supabase
@@ -188,6 +243,7 @@ export async function refreshFactChecks(opts?: { fetch?: typeof fetch }): Promis
       candidates: rows.length,
       inserted: 0,
       skippedExisting,
+      archivedStatistical,
       error: `No se pudo insertar: ${insertError.message}`,
     };
   }
@@ -198,5 +254,6 @@ export async function refreshFactChecks(opts?: { fetch?: typeof fetch }): Promis
     candidates: rows.length,
     inserted: toInsert.length,
     skippedExisting,
+    archivedStatistical,
   };
 }

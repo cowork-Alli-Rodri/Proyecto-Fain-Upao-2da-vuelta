@@ -51,29 +51,52 @@ export default function PortalPage() {
           <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 sm:px-6 lg:grid-cols-12 lg:gap-14">
             {/* Izquierda: etiqueta enmarcada + CTA */}
             <div className="relative space-y-8 lg:col-span-7">
-              {/* Resplandor suave detrás de la etiqueta: da una superficie clara
-                  que el vidrio frosted refracta, igual que la cuña diagonal tras
-                  el cuadro del contador. Sin esto, el backdrop-blur sobre navy
-                  plano no produce el efecto vidrio. */}
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -left-8 -top-10 h-[320px] w-[460px] rounded-full opacity-60 blur-3xl"
-                style={{
-                  background:
-                    "radial-gradient(circle at 35% 35%, color-mix(in oklch, var(--color-cyan-electric) 55%, transparent) 0%, color-mix(in oklch, var(--color-orange-upao) 22%, transparent) 45%, transparent 72%)",
-                }}
-              />
-              <AnimatedLabel kicker="FAIN-UPAO · Segunda Vuelta 2026">
-                <h1 className="m-0 text-center font-display text-[clamp(1.75rem,5vw,3.25rem)] font-medium uppercase leading-[0.95] tracking-tight">
-                  <span className="block">Segunda Vuelta</span>
-                  <span className="block text-[var(--color-orange-upao)]">
-                    Presidencial
-                  </span>
-                  <span className="mt-2 block font-mono text-[clamp(2.25rem,6vw,4rem)] tracking-[0.04em] text-white">
-                    2026
-                  </span>
-                </h1>
-              </AnimatedLabel>
+              {/* Wrapper a la medida de la tarjeta: detrás del panel ponemos una
+                  superficie con estructura (resplandor + franja diagonal) para
+                  que el vidrio frosted tenga algo que refractar — el mismo papel
+                  que cumple la cuña diagonal tras el cuadro del contador. Sobre
+                  navy plano el backdrop-blur no produce efecto ventana. */}
+              <div className="relative w-fit">
+                {/* Resplandor ambiental sutil y frío alrededor de la tarjeta */}
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute -inset-6 rounded-[1.75rem] opacity-55 blur-2xl"
+                  style={{
+                    background:
+                      "radial-gradient(60% 60% at 32% 28%, color-mix(in oklch, var(--color-cyan-electric) 30%, transparent) 0%, color-mix(in oklch, var(--color-navy-soft) 30%, transparent) 55%, transparent 80%)",
+                  }}
+                />
+                {/* Superficie refractada por el panel: misma idea que la cuña
+                    diagonal tras el contador — cuña navy-soft + línea naranja
+                    fina y cyan tenue. El backdrop-blur del panel la suaviza y
+                    produce el efecto ventana, en tono sobrio (sin blanco). */}
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl"
+                >
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      background: [
+                        "linear-gradient(118deg, transparent 49.4%, color-mix(in oklch, var(--color-orange-upao) 60%, transparent) 50%, transparent 50.6%)",
+                        "linear-gradient(118deg, transparent 57.6%, color-mix(in oklch, var(--color-cyan-electric) 38%, transparent) 58%, transparent 58.4%)",
+                        "linear-gradient(118deg, transparent 18%, color-mix(in oklch, var(--color-navy-soft) 55%, transparent) 50%, transparent 82%)",
+                      ].join(", "),
+                    }}
+                  />
+                </div>
+                <AnimatedLabel kicker="FAIN-UPAO · Segunda Vuelta 2026">
+                  <h1 className="m-0 text-center font-display text-[clamp(1.75rem,5vw,3.25rem)] font-medium uppercase leading-[0.95] tracking-tight">
+                    <span className="block">Segunda Vuelta</span>
+                    <span className="block text-[var(--color-orange-upao)]">
+                      Presidencial
+                    </span>
+                    <span className="mt-2 block font-mono text-[clamp(2.25rem,6vw,4rem)] tracking-[0.04em] text-white">
+                      2026
+                    </span>
+                  </h1>
+                </AnimatedLabel>
+              </div>
 
               <ScrollReveal direction="up" delay={0.5}>
                 <p className="max-w-xl text-base leading-relaxed text-white/85 sm:text-lg">
@@ -114,10 +137,6 @@ export default function PortalPage() {
                     Aprovecha el tiempo para informarte.
                   </p>
                 </div>
-              </ScrollReveal>
-
-              <ScrollReveal direction="up" delay={0.7}>
-                <AltrionCredit className="mt-10 flex justify-end pr-1 sm:mt-12" />
               </ScrollReveal>
             </aside>
           </div>
@@ -218,15 +237,20 @@ export default function PortalPage() {
         {/* FOOTER */}
         <footer className="border-t border-[var(--color-border)] bg-[var(--color-surface)] py-10 sm:py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="flex flex-col items-start justify-between gap-6 text-sm text-[var(--color-graphite)] md:flex-row">
+            <div className="flex flex-col items-start justify-between gap-10 text-sm text-[var(--color-graphite)] md:flex-row md:items-center md:gap-8">
               <div className="max-w-md space-y-2">
                 <BrandMark context="Segunda Vuelta 2026" />
                 <p className="max-w-md">
-                  Trabajo académico de la FAIN-UPAO. Investigación realizada con el
-                  auspicio del Fondo de Investigación del Vicerrectorado de
-                  Investigación de la Universidad Privada Antenor Orrego.
+                  Investigación realizada con el auspicio del Fondo de
+                  Investigación del Vicerrectorado de Investigación de la
+                  Universidad Privada Antenor Orrego.
                 </p>
               </div>
+              <AltrionCredit
+                tone="onLight"
+                align="center"
+                className="flex justify-start md:justify-center"
+              />
               <div className="space-y-1 text-left md:text-right">
                 <p>Fuente: Jurado Nacional de Elecciones (JNE)</p>
                 <p className="font-mono text-xs">votoinformado.jne.gob.pe</p>

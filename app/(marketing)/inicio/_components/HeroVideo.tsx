@@ -1,21 +1,60 @@
+"use client";
+
 /**
  * Video hero del /inicio: el en vivo de Facebook de la Dra. Tula sobre la
- * Segunda Vuelta 2026. Reemplaza la animación pixart anterior por material
- * real y verificable. El embed usa el plugin oficial de video de Facebook.
+ * Segunda Vuelta 2026. El embed usa el plugin oficial de video de Facebook.
+ *
+ * El plugin renderiza el reproductor al ancho exacto del parámetro `width`. Si
+ * se deja fijo (p. ej. 560), en móvil el iframe mide menos y FB dibuja el
+ * reproductor fuera del área visible — se ve el recuadro vacío. Por eso medimos
+ * el contenedor y pasamos su ancho real, recalculando en cada resize/rotación.
  */
+
+import { useEffect, useRef, useState } from "react";
 
 const FB_VIDEO_URL =
   "https://www.facebook.com/JNE.Peru/videos/1299888265636776/";
-const FB_EMBED_SRC = `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(
-  FB_VIDEO_URL,
-)}&show_text=false&autoplay=false&width=560`;
+
+function embedSrc(width: number): string {
+  return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(
+    FB_VIDEO_URL,
+  )}&show_text=false&autoplay=false&width=${width}`;
+}
 
 export function HeroVideo() {
+  const frameWrapRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(560);
+
+  useEffect(() => {
+    const el = frameWrapRef.current;
+    if (!el) return;
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const measure = () => {
+      const w = Math.round(el.getBoundingClientRect().width);
+      // Evita recargas por cambios mínimos durante el layout.
+      if (w > 0) setWidth((prev) => (Math.abs(prev - w) > 8 ? w : prev));
+    };
+
+    measure();
+    const onResize = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(measure, 150);
+    };
+
+    const ro = new ResizeObserver(onResize);
+    ro.observe(el);
+    return () => {
+      if (timer) clearTimeout(timer);
+      ro.disconnect();
+    };
+  }, []);
+
   return (
     <figure className="relative overflow-hidden rounded-3xl border border-[var(--color-border)] bg-[var(--color-navy-upao)] shadow-[var(--shadow-fluffy)]">
-      <div className="relative aspect-video w-full">
+      <div ref={frameWrapRef} className="relative aspect-video w-full">
         <iframe
-          src={FB_EMBED_SRC}
+          src={embedSrc(width)}
           title="En vivo en Facebook sobre la Segunda Vuelta Presidencial 2026"
           className="absolute inset-0 h-full w-full"
           style={{ border: "none", overflow: "hidden" }}

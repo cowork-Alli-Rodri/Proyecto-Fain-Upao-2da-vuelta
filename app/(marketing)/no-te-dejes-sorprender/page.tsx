@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { BrandBar, BrandMark } from "@/components/brand/BrandMark";
+import { isStatisticalClaim } from "@/lib/fact-check/statistical";
 import { VERIFIERS } from "@/lib/fact-checks/verifiers";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -29,6 +30,8 @@ async function loadPublishedFactChecks(): Promise<PublishedFactCheck[]> {
     // Ordenamos por fecha_origen (fecha real de la verificación) descendente,
     // con fallback a published_at. Así la galería refleja la actualidad de los
     // casos y queda naturalmente variada por candidato.
+    // Traemos más de los 12 visibles porque a continuación descartamos las
+    // piezas con datos estadísticos/de encuestas (sesgo de votación indirecto).
     const { data } = await supabase
       .from("fact_checks" as never)
       .select(
@@ -37,8 +40,10 @@ async function loadPublishedFactChecks(): Promise<PublishedFactCheck[]> {
       .eq("status", "published")
       .order("fecha_origen", { ascending: false, nullsFirst: false })
       .order("published_at", { ascending: false })
-      .limit(12);
-    return (data ?? []) as PublishedFactCheck[];
+      .limit(48);
+    return ((data ?? []) as PublishedFactCheck[])
+      .filter((fc) => !isStatisticalClaim(fc.titular_falso, fc.contexto))
+      .slice(0, 12);
   } catch {
     return [];
   }

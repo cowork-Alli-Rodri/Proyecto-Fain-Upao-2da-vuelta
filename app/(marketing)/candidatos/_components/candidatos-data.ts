@@ -179,7 +179,7 @@ export const CANDIDATOS: Record<CandidatoSlug, CandidatoData> = {
 };
 
 export interface DebateSchedule {
-  group: "upcoming" | "previous";
+  group: "upcoming";
   groupLabel: string;
   items: Array<{
     name: string;
@@ -216,30 +216,6 @@ export const DEBATES: DebateSchedule[] = [
           "Fortalecimiento del Estado democrático y derechos humanos",
           "Educación y salud",
           "Economía, empleo y reducción de la pobreza",
-        ],
-      },
-    ],
-  },
-  {
-    group: "previous",
-    groupLabel: "Debates primera vuelta",
-    items: [
-      {
-        name: "Debate N.° 3",
-        dateLabel: "Miércoles 25 de marzo de 2026",
-        badge: "Primera fase",
-        topics: [
-          "Seguridad ciudadana y lucha contra la criminalidad",
-          "Integridad pública y lucha contra la corrupción",
-        ],
-      },
-      {
-        name: "Debate N.° 5",
-        dateLabel: "Martes 31 de marzo de 2026",
-        badge: "Segunda fase",
-        topics: [
-          "Educación, innovación y tecnología",
-          "Empleo, desarrollo y emprendimiento",
         ],
       },
     ],
