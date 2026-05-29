@@ -84,9 +84,11 @@ export default async function NoTeDejesSorprenderPage() {
               <span className="italic text-[var(--color-coral-pulse)]">sorprender</span>.
             </h1>
             <p className="max-w-2xl pt-2 text-base leading-relaxed text-[var(--color-graphite)] sm:text-lg">
-              Antes de reenviar algo que viste sobre las candidaturas, pégalo
-              aquí. Consultamos la red mundial de verificadores (Google Fact
-              Check Tools) y te decimos si esa frase ya fue revisada — y qué
+              Antes de compartir lo que viste en redes sociales en torno a las
+              elecciones de segunda vuelta, verifícalo aquí. No adoptes una
+              decisión por una noticia que circula sin antes comprobarla:
+              consultamos la red mundial de verificadores (Google Fact Check
+              Tools) y te decimos si esa afirmación ya fue revisada — y qué
               veredicto le dio cada medio.
             </p>
           </div>

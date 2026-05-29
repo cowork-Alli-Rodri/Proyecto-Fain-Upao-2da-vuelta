@@ -5,6 +5,7 @@ import { BrandBar, BrandMark } from "@/components/brand/BrandMark";
 import { createClient } from "@/lib/supabase/server";
 
 import { CandidatosSplitView } from "./_components/CandidatosSplitView";
+import { ComparacionCandidatos } from "./_components/ComparacionCandidatos";
 import { PlanResumenSection } from "./_components/PlanResumenSection";
 import { StudentDimensionTracker } from "./_components/StudentDimensionTracker";
 
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
   title: "Candidatos · Segunda Vuelta 2026",
   description:
-    "Comparador oficial entre Keiko Fujimori (Fuerza Popular) y Roberto Sánchez (Juntos por el Perú): hoja de vida, plan de gobierno, video de presentación y debates JNE. Datos del Jurado Nacional de Elecciones.",
+    "Comparador oficial entre Keiko Fujimori (Fuerza Popular) y Roberto Sánchez (Juntos por el Perú): hoja de vida, plan de gobierno, video de presentación y debates JNE. Fuente: Jurado Nacional de Elecciones (JNE).",
 };
 
 // Página dinámica (lee user) — sin revalidate estático.
@@ -91,6 +92,8 @@ export default async function CandidatosPage() {
 
       <CandidatosSplitView />
 
+      <ComparacionCandidatos />
+
       <PlanResumenSection />
 
       {studentContext.show ? (
@@ -104,8 +107,8 @@ export default async function CandidatosPage() {
             <p className="editorial-kicker">Importante</p>
             <p className="text-sm leading-relaxed text-[var(--color-graphite)]">
               Esta página reproduce los datos publicados por el Jurado Nacional de Elecciones en su plataforma oficial
-              de Voto Informado. Las fotografías de los candidatos se presentan en estilo pixart como recurso visual
-              del proyecto. Los enlaces a hoja de vida, plan de gobierno y debates llevan al sitio oficial del JNE.
+              de Voto Informado. Las fotografías son las oficiales registradas por cada candidato ante el JNE. Los
+              enlaces a hoja de vida, plan de gobierno y debates llevan al sitio oficial del JNE.
             </p>
             <div className="flex flex-wrap gap-3 pt-2 text-sm">
               <Link

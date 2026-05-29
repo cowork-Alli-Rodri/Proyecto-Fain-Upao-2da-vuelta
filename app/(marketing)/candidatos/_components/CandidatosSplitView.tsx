@@ -37,9 +37,9 @@ export function CandidatosSplitView() {
         {/* Línea diagonal central — naranja UPAO institucional */}
         <DiagonalDivider />
 
-        {/* Pixart photos (centro de cada hemisferio, prominentes) */}
-        <PixartPhoto candidato={keiko} side="left" />
-        <PixartPhoto candidato={roberto} side="right" />
+        {/* Fotos oficiales (centro de cada hemisferio, prominentes) */}
+        <CandidatoPhoto candidato={keiko} side="left" />
+        <CandidatoPhoto candidato={roberto} side="right" />
 
         {/* Capas de contenido — bordes y centro */}
         <div className="relative z-20 mx-auto grid h-full min-h-[calc(100vh-72px)] max-w-[1700px] grid-cols-[minmax(320px,400px)_1fr_minmax(280px,360px)_1fr_minmax(320px,400px)] gap-4 px-4 py-6 lg:gap-6 lg:px-8 lg:py-8">
@@ -102,7 +102,7 @@ function DiagonalDivider() {
   );
 }
 
-function PixartPhoto({
+function CandidatoPhoto({
   candidato,
   side,
 }: {
@@ -115,33 +115,19 @@ function PixartPhoto({
       className={
         // Containers exactamente espejados respecto al 50% (eje del DiagonalDivider):
         // izq de 18% a 50%, der de 50% a 82%. Esto garantiza que el ancho disponible
-        // a cada lado sea idéntico y que ningún video invada el lado del otro.
+        // a cada lado sea idéntico y que ninguna foto invada el lado del otro.
         "pointer-events-none absolute bottom-0 top-[40px] z-10 hidden md:block " +
         (side === "left" ? "left-[18%] right-1/2" : "right-[18%] left-1/2")
       }
     >
-      {candidato.pixartVideoUrl ? (
-        <video
-          src={candidato.pixartVideoUrl}
-          poster={candidato.pixartUrl}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          className="absolute inset-0 h-full w-full object-contain object-bottom drop-shadow-[0_28px_30px_rgba(15,18,35,0.18)]"
-          aria-label={`Animación de ${candidato.displayName}`}
-        />
-      ) : (
-        <Image
-          src={candidato.pixartUrl}
-          alt={`Pixart de ${candidato.displayName}`}
-          fill
-          priority
-          sizes="(min-width: 1280px) 44vw, 50vw"
-          className="object-contain object-bottom drop-shadow-[0_28px_30px_rgba(15,18,35,0.18)]"
-        />
-      )}
+      <Image
+        src={candidato.photoUrl}
+        alt={`Foto oficial de ${candidato.displayName}`}
+        fill
+        priority
+        sizes="(min-width: 1280px) 44vw, 50vw"
+        className="object-contain object-bottom drop-shadow-[0_28px_30px_rgba(15,18,35,0.18)]"
+      />
     </div>
   );
 }
@@ -251,7 +237,7 @@ function CentralBannerMobile() {
 
 function SegundaEleccionBadge() {
   return (
-    <div className="flex flex-col items-center gap-1 rounded-2xl border-2 border-[var(--color-orange-upao)] bg-white px-5 py-3 text-center shadow-[var(--shadow-soft)]">
+    <div className="flex flex-col items-center gap-1 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]/95 px-5 py-3 text-center shadow-[var(--shadow-soft)] backdrop-blur">
       <p className="font-mono text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-[var(--color-orange-upao-deep)]">
         Segunda elección
       </p>
@@ -274,7 +260,7 @@ function VisitsCounter() {
         aria-hidden
       />
       <span className="font-mono text-[0.7rem] font-semibold tabular-nums text-[var(--color-navy-upao)]">
-        Voto Informado FAIN-UPAO
+        FAIN-UPAO
       </span>
     </div>
   );
@@ -295,27 +281,13 @@ function MobileCandidatoCard({ candidato }: { candidato: CandidatoData }) {
           background: `linear-gradient(180deg, color-mix(in oklch, ${candidato.partyAccentHex} 8%, white), white)`,
         }}
       >
-        {candidato.pixartVideoUrl ? (
-          <video
-            src={candidato.pixartVideoUrl}
-            poster={candidato.pixartUrl}
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="metadata"
-            className="absolute inset-0 h-full w-full object-contain object-bottom"
-            aria-label={`Animación de ${candidato.displayName}`}
-          />
-        ) : (
-          <Image
-            src={candidato.pixartUrl}
-            alt={`Pixart de ${candidato.displayName}`}
-            fill
-            sizes="(max-width: 768px) 100vw, 50vw"
-            className="object-contain object-bottom"
-          />
-        )}
+        <Image
+          src={candidato.photoUrl}
+          alt={`Foto oficial de ${candidato.displayName}`}
+          fill
+          sizes="(max-width: 768px) 100vw, 50vw"
+          className="object-contain object-bottom"
+        />
       </div>
       <div className="space-y-4 p-5">
         <PartyBadge candidato={candidato} align="left" />

@@ -11,9 +11,9 @@ import { HeroVideo } from "./_components/HeroVideo";
 
 export const metadata: Metadata = {
   robots: { index: true, follow: true },
-  title: "Inicio · Analiza y decide bien",
+  title: "Inicio · Lee y decide bien",
   description:
-    "Primero tu postura, después los planes oficiales del JNE de Fuerza Popular y Juntos por el Perú, al final tu decisión informada. Sin opiniones nuestras.",
+    "Primero tu punto de vista, después los planes oficiales del JNE de Fuerza Popular y Juntos por el Perú, al final tu decisión informada. Basada en las ofertas electorales de los candidatos presidenciales de la segunda vuelta.",
 };
 
 export default function InicioPage() {
@@ -26,7 +26,7 @@ export default function InicioPage() {
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-4">
             <Link href="/" className="flex items-center gap-3">
               <BrandBar className="h-7 sm:h-8" />
-              <BrandMark context="Voto Informado e Instruido" hideContextOnMobile />
+              <BrandMark context="Segunda Vuelta 2026" hideContextOnMobile />
             </Link>
             <div className="flex items-center gap-3">
               <Link
@@ -45,7 +45,7 @@ export default function InicioPage() {
           </div>
         </header>
 
-        {/* HERO — video pixart como protagonista; texto compacto al costado */}
+        {/* HERO — en vivo de Facebook como protagonista; texto compacto al costado */}
         <section className="relative overflow-hidden border-b border-[var(--color-border)]">
           <div className="mx-auto grid max-w-[1500px] grid-cols-1 items-center gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-12 lg:gap-14 lg:py-20">
             {/* Video grande — ocupa la mayoría del hero */}
@@ -66,7 +66,7 @@ export default function InicioPage() {
 
               <GsapHeroReveal className="font-display text-[clamp(1.875rem,3.6vw,3.25rem)] font-medium leading-[1] tracking-tight text-[var(--color-navy-upao)]">
                 <h1 className="m-0">
-                  <span className="block">Primero tu postura.</span>
+                  <span className="block">Primero tu punto de vista.</span>
                   <span className="block">Después los planes.</span>
                   <span className="block italic text-[var(--color-orange-upao)]">
                     Al final, tu decisión.
@@ -76,10 +76,12 @@ export default function InicioPage() {
 
               <ScrollReveal direction="up" delay={0.2}>
                 <p className="text-sm leading-relaxed text-[var(--color-graphite)] sm:text-base">
-                  Respondes 12 preguntas con tu postura, revisas los planes
-                  oficiales de <strong>Fuerza Popular</strong> y{" "}
+                  Esta plataforma se basa en las ofertas electorales oficiales de
+                  los candidatos presidenciales de la segunda vuelta. Das tu punto
+                  de vista, lees y contrastas las propuestas de{" "}
+                  <strong>Fuerza Popular</strong> y{" "}
                   <strong>Juntos por el Perú</strong>, y decides con información
-                  — no con impulso.
+                  oficial del JNE — no con impulso.
                 </p>
               </ScrollReveal>
 
@@ -104,21 +106,22 @@ export default function InicioPage() {
         <footer className="border-t border-[var(--color-border)] bg-[var(--color-surface-2)] py-8 sm:py-10">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div className="flex flex-col items-start justify-between gap-6 text-sm text-[var(--color-graphite)] md:flex-row">
-              <div className="space-y-1">
-                <BrandMark prefix="Voto Informado e Instruido" context="Segunda Vuelta 2026" />
+              <div className="max-w-md space-y-1">
+                <BrandMark context="Segunda Vuelta 2026" />
                 <p>
-                  Trabajo académico de la FAIN-UPAO. No es propaganda ni
-                  comunicación oficial de la universidad.
+                  Trabajo académico de la FAIN-UPAO. Investigación realizada con el
+                  auspicio del Fondo de Investigación del Vicerrectorado de
+                  Investigación de la Universidad Privada Antenor Orrego.
                 </p>
               </div>
               <div className="space-y-1 text-left md:text-right">
-                <p>Datos del Jurado Nacional de Elecciones (JNE)</p>
+                <p>Fuente: Jurado Nacional de Elecciones (JNE)</p>
                 <p className="font-mono text-xs">votoinformado.jne.gob.pe</p>
                 <Link
                   href="/docente"
                   className="mt-3 inline-flex items-center gap-1.5 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-[var(--color-orange-upao)] hover:underline"
                 >
-                  Acceso docente
+                  Acceso FAIN
                   <span aria-hidden>→</span>
                 </Link>
               </div>

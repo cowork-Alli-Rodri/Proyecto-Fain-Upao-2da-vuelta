@@ -69,8 +69,9 @@ const nextConfig: NextConfig = {
       // subdominios del JNE (web.jne.gob.pe legacy + votoinformadoia.jne.gob.pe nuevo).
       `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.posthog.com https://*.sentry.io https://*.jne.gob.pe https://factchecktools.googleapis.com${localSupabase}`,
       // frame-src incluye votoinformadoia.jne.gob.pe para embed de PDFs de
-      // planes de gobierno (modal "Plan de Gobierno" en /candidatos).
-      "frame-src 'self' https://challenges.cloudflare.com https://*.jne.gob.pe",
+      // planes de gobierno (modal "Plan de Gobierno" en /candidatos) y
+      // www.facebook.com para el embed del en vivo en el hero de /inicio.
+      "frame-src 'self' https://challenges.cloudflare.com https://*.jne.gob.pe https://www.facebook.com https://web.facebook.com",
       // media-src para videos de presentación de candidatos (S3 público del JNE).
       "media-src 'self' https://jne-videos-publicos.s3.us-east-2.amazonaws.com",
       "frame-ancestors 'none'",

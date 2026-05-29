@@ -72,7 +72,7 @@ export default async function CierrePage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-3">
             <BrandBar />
-            <BrandMark context="Voto Informado e Instruido" />
+            <BrandMark context="Segunda Vuelta 2026" />
           </Link>
           <div className="flex items-center gap-5">
             <p className="font-mono text-[0.7rem] uppercase tracking-[0.2em] text-[var(--color-mint-success)]">

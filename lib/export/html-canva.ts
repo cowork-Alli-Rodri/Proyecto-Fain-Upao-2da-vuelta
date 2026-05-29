@@ -118,7 +118,7 @@ export function exportHtmlCanva(ds: ExportDataset): string {
 <html lang="es-PE">
 <head>
 <meta charset="utf-8">
-<title>Dashboard · Voto Informado e Instruido · FAIN-UPAO · ${escapeHtml(ds.generatedAt)}</title>
+<title>Dashboard · FAIN-UPAO · Segunda Vuelta 2026 · ${escapeHtml(ds.generatedAt)}</title>
 <style>
   :root {
     --navy: #002855;
@@ -159,7 +159,7 @@ export function exportHtmlCanva(ds: ExportDataset): string {
 <body>
 <main class="wrap">
   <header data-canva-block="title">
-    <p class="kicker">Dashboard · Voto Informado e Instruido · FAIN-UPAO · Segunda Vuelta 2026</p>
+    <p class="kicker">Dashboard · FAIN-UPAO · Segunda Vuelta 2026</p>
     <div class="rule"></div>
     <h1>Resumen del grupo</h1>
     <p>Generado el ${escapeHtml(new Date(ds.generatedAt).toLocaleString("es-PE"))} · Anonimización: ${escapeHtml(ds.anonymize)}</p>
@@ -248,7 +248,7 @@ export function exportHtmlCanva(ds: ExportDataset): string {
   </section>
 
   <footer>
-    <p>Datos del Jurado Nacional de Elecciones (JNE) · Voto Informado e Instruido · FAIN-UPAO · ${escapeHtml(ds.generatedAt)}</p>
+    <p>Fuente: Jurado Nacional de Elecciones (JNE) · FAIN-UPAO · Segunda Vuelta 2026 · ${escapeHtml(ds.generatedAt)}</p>
     <p>Esta plataforma no emite recomendaciones de voto. Análisis pedagógico del docente.</p>
   </footer>
 </main>

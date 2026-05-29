@@ -24,13 +24,13 @@ export function VicePresidentCard({
         className="relative w-full shrink-0 overflow-hidden bg-gradient-to-b from-[var(--color-bone)] to-[var(--color-surface-3)]"
         style={{ aspectRatio: "2 / 3" }}
       >
-        {vp.pixartUrl ? (
+        {vp.photoUrl ? (
           <Image
-            src={vp.pixartUrl}
-            alt={`Pixart de ${vp.fullName}`}
+            src={vp.photoUrl}
+            alt={`Foto oficial de ${vp.fullName}`}
             fill
             sizes="(min-width: 1280px) 200px, (min-width: 768px) 180px, 45vw"
-            className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+            className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center gap-1 px-2 text-center">
@@ -39,7 +39,7 @@ export function VicePresidentCard({
               aria-hidden
             />
             <span className="font-mono text-[0.55rem] uppercase leading-tight tracking-[0.1em] text-[var(--color-graphite)]">
-              Pixart próximo
+              Foto no disponible
             </span>
           </div>
         )}

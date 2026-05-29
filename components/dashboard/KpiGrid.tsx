@@ -31,7 +31,7 @@ export function KpiGrid({ kpis }: { kpis: KpiSummary }) {
     },
     {
       kicker: "Cambio opinión",
-      label: "Cambió postura en al menos 1 pregunta",
+      label: "Cambió de punto de vista en al menos 1 pregunta",
       value: `${Math.round(kpis.opinion_change_rate * 100)}%`,
       accent: "var(--color-mango-sun)",
       mono: true,

@@ -119,7 +119,7 @@ export default async function CuestionarioPostStepPage({
             </Link>
             <div className="flex items-center gap-5">
               <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-[var(--color-graphite)] sm:text-[0.7rem] sm:tracking-[0.2em]">
-                <span className="hidden sm:inline">Voto Informado e Instruido · </span>2026
+                <span className="hidden sm:inline">FAIN-UPAO · </span>2026
               </p>
               <SignOutLink />
             </div>
@@ -132,6 +132,7 @@ export default async function CuestionarioPostStepPage({
             initialAnswers={initialAnswers}
             initialStep={stepNum}
             momento="post"
+            intro="Después de revisar los planes oficiales de los candidatos y considerando tu punto de vista, con base en información oficial del JNE y no en impulsos, responde las siguientes preguntas."
           />
         </div>
       </main>

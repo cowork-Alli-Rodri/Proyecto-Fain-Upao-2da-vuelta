@@ -34,11 +34,13 @@ export function MultiStepForm({
   initialAnswers,
   initialStep,
   momento,
+  intro,
 }: {
   questions: QuestionRecord[];
   initialAnswers: Record<string, AnswerValue>;
   initialStep: number;
   momento: "pre" | "post";
+  intro?: string;
 }) {
   const router = useRouter();
   const routeBase = `/cuestionario-${momento}`;
@@ -197,6 +199,12 @@ export function MultiStepForm({
 
   return (
     <div className="space-y-10">
+      {intro && stepIndex === 0 ? (
+        <p className="rounded-2xl border-l-2 border-[var(--color-cyan-deep)] bg-[var(--color-surface-2)] px-5 py-4 text-sm leading-relaxed text-[var(--color-graphite)]">
+          {intro}
+        </p>
+      ) : null}
+
       <ProgressBar current={stepIndex + 1} total={total} dimension={dimensionLabel} />
 
       <AnimatePresence mode="wait">

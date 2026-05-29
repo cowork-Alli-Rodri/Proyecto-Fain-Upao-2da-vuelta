@@ -49,7 +49,7 @@ export default async function ConsentPage() {
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <Link href="/" className="flex items-center gap-3">
             <BrandBar />
-            <BrandMark context="Voto Informado e Instruido" hideContextOnMobile />
+            <BrandMark context="Segunda Vuelta 2026" hideContextOnMobile />
           </Link>
           <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-[var(--color-graphite)] sm:text-[0.7rem] sm:tracking-[0.2em]">
             Paso 1 de 2

@@ -68,7 +68,7 @@ export const CARRERAS_POR_FACULTAD: Record<Facultad, readonly string[]> = {
   ],
 };
 
-export const RANGOS_EDAD = ["17-19", "20-22", "23-25", "26+"] as const;
+export const RANGOS_EDAD = ["18-19", "20-22", "23-25", "26+"] as const;
 export type RangoEdad = (typeof RANGOS_EDAD)[number];
 
 export const GENEROS = [

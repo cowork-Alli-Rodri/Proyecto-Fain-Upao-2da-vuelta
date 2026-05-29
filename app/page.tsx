@@ -28,7 +28,7 @@ export default function PortalPage() {
             <Link href="/" className="flex items-center gap-3">
               <BrandBar className="h-7 sm:h-8" tone="onDark" />
               <BrandMark
-                context="Voto Informado e Instruido"
+                context="Segunda Vuelta 2026"
                 hideContextOnMobile
                 tone="onDark"
               />
@@ -50,8 +50,20 @@ export default function PortalPage() {
 
           <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 sm:px-6 lg:grid-cols-12 lg:gap-14">
             {/* Izquierda: etiqueta enmarcada + CTA */}
-            <div className="space-y-8 lg:col-span-7">
-              <AnimatedLabel kicker="Voto Informado e Instruido · FAIN-UPAO">
+            <div className="relative space-y-8 lg:col-span-7">
+              {/* Resplandor suave detrás de la etiqueta: da una superficie clara
+                  que el vidrio frosted refracta, igual que la cuña diagonal tras
+                  el cuadro del contador. Sin esto, el backdrop-blur sobre navy
+                  plano no produce el efecto vidrio. */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -left-8 -top-10 h-[320px] w-[460px] rounded-full opacity-60 blur-3xl"
+                style={{
+                  background:
+                    "radial-gradient(circle at 35% 35%, color-mix(in oklch, var(--color-cyan-electric) 55%, transparent) 0%, color-mix(in oklch, var(--color-orange-upao) 22%, transparent) 45%, transparent 72%)",
+                }}
+              />
+              <AnimatedLabel kicker="FAIN-UPAO · Segunda Vuelta 2026">
                 <h1 className="m-0 text-center font-display text-[clamp(1.75rem,5vw,3.25rem)] font-medium uppercase leading-[0.95] tracking-tight">
                   <span className="block">Segunda Vuelta</span>
                   <span className="block text-[var(--color-orange-upao)]">
@@ -65,9 +77,11 @@ export default function PortalPage() {
 
               <ScrollReveal direction="up" delay={0.5}>
                 <p className="max-w-xl text-base leading-relaxed text-white/85 sm:text-lg">
-                  Vas a votar por primera vez. Antes de ir a tu mesa, toma una
-                  decisión basada en lo que cada candidatura prometió oficialmente
-                  al JNE — no en lo que circula por redes.
+                  Vas a votar por primera vez. Esta plataforma se basa en las
+                  ofertas electorales que cada candidatura presidencial de la
+                  segunda vuelta registró oficialmente ante el JNE. Antes de ir a
+                  tu mesa, toma una decisión con esa información — no con lo que
+                  circula por redes.
                 </p>
               </ScrollReveal>
 
@@ -115,57 +129,6 @@ export default function PortalPage() {
           />
         </section>
 
-        {/* TRES HERRAMIENTAS */}
-        <section className="border-b border-[var(--color-border)] py-16 sm:py-24">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <ScrollReveal direction="up">
-              <div className="mb-12 flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
-                <div className="space-y-3">
-                  <p className="editorial-kicker">Tres herramientas</p>
-                  <h2 className="font-display text-[clamp(2rem,5vw,3.25rem)] font-medium leading-tight tracking-tight text-[var(--color-navy-upao)]">
-                    Para decidir{" "}
-                    <span className="italic text-[var(--color-orange-upao)]">
-                      sin dejarte sorprender
-                    </span>
-                    .
-                  </h2>
-                </div>
-                <p className="max-w-md text-sm text-[var(--color-graphite)]">
-                  Tres caminos de entrada. Empieza por el que más te interese; el
-                  resto también va a estar disponible cuando quieras volver.
-                </p>
-              </div>
-            </ScrollReveal>
-
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-              <ToolCard
-                kicker="01 · Análisis"
-                title="Analiza los planes oficiales."
-                description="Lee, lado a lado, las propuestas que Keiko Fujimori y Roberto Sánchez registraron ante el JNE. Texto literal, sin parafraseo."
-                href="/inicio"
-                cta="Empezar el análisis"
-                accent="var(--color-cyan-deep)"
-              />
-              <ToolCard
-                kicker="02 · Verificación"
-                title="No te dejes sorprender."
-                description="Identifica la información falsa o engañosa que circula en redes. Recopilamos verificaciones publicadas por medios de comprobación reconocidos."
-                href="/no-te-dejes-sorprender"
-                cta="Ver desinformación"
-                accent="var(--color-coral-pulse)"
-              />
-              <ToolCard
-                kicker="03 · Candidatos"
-                title="Conoce a quienes lideran."
-                description="Datos oficiales: hoja de vida pública en el JNE, partido, trayectoria. Sin opiniones, solo lo declarado."
-                href="/candidatos"
-                cta="Ver candidatos"
-                accent="var(--color-orange-upao)"
-              />
-            </div>
-          </div>
-        </section>
-
         {/* BLOQUE OBJETIVO + COMPROMISO */}
         <section className="bg-[var(--color-surface-2)] py-16 sm:py-24">
           <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-4 sm:px-6 lg:grid-cols-12 lg:gap-16">
@@ -200,28 +163,78 @@ export default function PortalPage() {
           </div>
         </section>
 
+        {/* TRES HERRAMIENTAS */}
+        <section className="border-y border-[var(--color-border)] bg-[var(--color-surface)] py-16 sm:py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <ScrollReveal direction="up">
+              <div className="mb-12 flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
+                <div className="space-y-3">
+                  <p className="editorial-kicker">Tres herramientas</p>
+                  <h2 className="font-display text-[clamp(2rem,5vw,3.25rem)] font-medium leading-tight tracking-tight text-[var(--color-navy-upao)]">
+                    Para decidir{" "}
+                    <span className="italic text-[var(--color-orange-upao)]">
+                      sin dejarte sorprender
+                    </span>
+                    .
+                  </h2>
+                </div>
+                <p className="max-w-md text-sm text-[var(--color-graphite)]">
+                  Síguelas en orden: primero conoce a los candidatos, después lee
+                  sus propuestas y por último verifica la información antes de
+                  decidir.
+                </p>
+              </div>
+            </ScrollReveal>
+
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              <ToolCard
+                kicker="01 · Candidatos"
+                title="Conoce a los candidatos de los partidos políticos."
+                description="Foto, partido y trayectoria oficial de Keiko Fujimori (Fuerza Popular) y Roberto Sánchez (Juntos por el Perú), según su hoja de vida registrada en el JNE."
+                href="/candidatos"
+                cta="Ver candidatos"
+                accent="var(--color-orange-upao)"
+              />
+              <ToolCard
+                kicker="02 · Propuestas"
+                title="Lee y contrasta las propuestas de los candidatos presidenciales."
+                description="Revisa, lado a lado, las propuestas oficiales que cada candidato registró ante el JNE, consultadas desde fuente oficial. Texto literal, sin parafraseo."
+                href="/candidatos"
+                cta="Leer propuestas"
+                accent="var(--color-cyan-deep)"
+              />
+              <ToolCard
+                kicker="03 · Verificación"
+                title="No te dejes sorprender."
+                description="Antes de adoptar una decisión por una noticia que circula en redes, verifícala. Consultamos la red mundial de verificadores (Google Fact Check Tools)."
+                href="/no-te-dejes-sorprender"
+                cta="Verificar información"
+                accent="var(--color-coral-pulse)"
+              />
+            </div>
+          </div>
+        </section>
+
         {/* FOOTER */}
         <footer className="border-t border-[var(--color-border)] bg-[var(--color-surface)] py-10 sm:py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div className="flex flex-col items-start justify-between gap-6 text-sm text-[var(--color-graphite)] md:flex-row">
-              <div className="space-y-2">
-                <BrandMark
-                  prefix="Voto Informado e Instruido"
-                  context="Segunda Vuelta 2026"
-                />
+              <div className="max-w-md space-y-2">
+                <BrandMark context="Segunda Vuelta 2026" />
                 <p className="max-w-md">
-                  Trabajo académico de la FAIN-UPAO. No es propaganda ni
-                  comunicación oficial de la universidad.
+                  Trabajo académico de la FAIN-UPAO. Investigación realizada con el
+                  auspicio del Fondo de Investigación del Vicerrectorado de
+                  Investigación de la Universidad Privada Antenor Orrego.
                 </p>
               </div>
               <div className="space-y-1 text-left md:text-right">
-                <p>Datos del Jurado Nacional de Elecciones (JNE)</p>
+                <p>Fuente: Jurado Nacional de Elecciones (JNE)</p>
                 <p className="font-mono text-xs">votoinformado.jne.gob.pe</p>
                 <Link
                   href="/docente"
                   className="mt-3 inline-flex items-center gap-1.5 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-[var(--color-orange-upao)] hover:underline"
                 >
-                  Acceso docente
+                  Acceso FAIN
                   <span aria-hidden>→</span>
                 </Link>
               </div>

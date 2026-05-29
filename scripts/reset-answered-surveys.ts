@@ -55,7 +55,7 @@ async function main() {
     process.exit(1);
   }
 
-  const list = (students ?? []) as Array<{
+  const list = (students ?? []) as unknown as Array<{
     id: string;
     email: string | null;
     current_step: number;

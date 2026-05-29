@@ -7,7 +7,7 @@ import { TeacherLoginCard } from "./_components/TeacherLoginCard";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "Acceso docente",
+  title: "Acceso FAIN",
   description:
     "Acceso al panel del docente para revisar el análisis del curso. Solo correos habilitados por la administración.",
 };
@@ -42,7 +42,7 @@ export default async function DocenteAccessPage() {
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-4">
           <Link href="/" className="flex items-center gap-3">
             <BrandBar />
-            <BrandMark context="Voto Informado e Instruido" hideContextOnMobile />
+            <BrandMark context="Segunda Vuelta 2026" hideContextOnMobile />
           </Link>
           <Link
             href="/login"
@@ -58,7 +58,7 @@ export default async function DocenteAccessPage() {
         <aside className="space-y-6 lg:col-span-5">
           <div className="space-y-3">
             <p className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-[var(--color-orange-upao)] sm:text-[0.7rem] sm:tracking-[0.22em]">
-              Acceso del docente
+              Acceso FAIN
             </p>
             <div className="h-px w-12 bg-[var(--color-orange-upao)]" aria-hidden />
           </div>

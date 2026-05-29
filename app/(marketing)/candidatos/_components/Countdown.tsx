@@ -4,11 +4,17 @@ import { useSyncExternalStore } from "react";
 
 import { ELECTION_DATE_ISO } from "./candidatos-data";
 
+// Mismo instante objetivo y mismo cálculo (días completos, floor) que el
+// contador del landing (ElectionCountdown). Así ambos muestran el mismo número.
+const ELECTION_TARGET_ISO =
+  (typeof process !== "undefined" && process.env.NEXT_PUBLIC_ELECTION_DATE) ||
+  ELECTION_DATE_ISO;
+
 function getDaysRemaining(targetIso: string, nowMs: number): number {
   const target = new Date(targetIso).getTime();
   const diff = target - nowMs;
   if (diff <= 0) return 0;
-  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  return Math.floor(diff / (1000 * 60 * 60 * 24));
 }
 
 function subscribe(callback: () => void): () => void {
@@ -17,7 +23,7 @@ function subscribe(callback: () => void): () => void {
 }
 
 function getSnapshot(): number {
-  return getDaysRemaining(ELECTION_DATE_ISO, Date.now());
+  return getDaysRemaining(ELECTION_TARGET_ISO, Date.now());
 }
 
 function getServerSnapshot(): null {

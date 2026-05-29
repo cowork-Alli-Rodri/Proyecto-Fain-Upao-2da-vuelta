@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Ingresar",
-  description: "Inicia sesión para acceder a Voto Informado FAIN-UPAO.",
+  description: "Inicia sesión para acceder a la plataforma de la FAIN-UPAO.",
 };
 
 export default async function LoginPage({

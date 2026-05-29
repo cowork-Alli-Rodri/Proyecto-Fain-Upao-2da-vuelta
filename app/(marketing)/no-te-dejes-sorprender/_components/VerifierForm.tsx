@@ -51,18 +51,26 @@ const VERDICT_META: Record<
   },
 };
 
+// Temas de desinformación que están circulando sobre la segunda vuelta. Al
+// tocarlos, se prellena el verificador y se lanza la búsqueda. No se incluyen
+// porcentajes de intención de voto: la plataforma no los publica.
+const TEMAS_CIRCULANDO = [
+  "Cambio de fecha de la segunda vuelta",
+  "Renuncia del JNE",
+  "Renuncia del candidato Roberto Sánchez",
+] as const;
+
 export function VerifierForm() {
   const [query, setQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<VerifierResult | null>(null);
   const [pending, startTransition] = useTransition();
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  function runVerify(text: string) {
     setError(null);
     setResult(null);
     startTransition(async () => {
-      const res = await verifyClaim({ query });
+      const res = await verifyClaim({ query: text });
       if (!res.ok) {
         const msg =
           res.error.code === "ValidationError"
@@ -74,6 +82,11 @@ export function VerifierForm() {
       }
       setResult(res.value);
     });
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    runVerify(query);
   }
 
   return (
@@ -127,6 +140,28 @@ export function VerifierForm() {
           </button>
         </div>
       </form>
+
+      <div className="space-y-2">
+        <p className="font-mono text-[0.6rem] uppercase tracking-[0.18em] text-[var(--color-graphite)]">
+          Temas que están circulando · verifícalos antes de compartir
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {TEMAS_CIRCULANDO.map((tema) => (
+            <button
+              key={tema}
+              type="button"
+              disabled={pending}
+              onClick={() => {
+                setQuery(tema);
+                runVerify(tema);
+              }}
+              className="inline-flex items-center rounded-full border border-[var(--color-border-strong)] bg-white px-3 py-1.5 text-xs font-medium text-[var(--color-graphite)] transition hover:border-[var(--color-cyan-deep)] hover:text-[var(--color-cyan-deep)] disabled:opacity-50"
+            >
+              {tema}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {error ? (
         <div

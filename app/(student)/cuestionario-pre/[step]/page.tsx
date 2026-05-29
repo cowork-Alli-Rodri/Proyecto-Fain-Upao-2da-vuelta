@@ -113,7 +113,7 @@ export default async function CuestionarioPreStepPage({
             </Link>
             <div className="flex items-center gap-5">
               <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-[var(--color-graphite)] sm:text-[0.7rem] sm:tracking-[0.2em]">
-                <span className="hidden sm:inline">Voto Informado e Instruido · </span>2026
+                <span className="hidden sm:inline">FAIN-UPAO · </span>2026
               </p>
               <SignOutLink />
             </div>
@@ -126,6 +126,7 @@ export default async function CuestionarioPreStepPage({
             initialAnswers={initialAnswers}
             initialStep={stepNum}
             momento="pre"
+            intro="Antes de revisar los planes, responde según tu punto de vista actual, con base en información oficial del JNE y no en impulsos. Más adelante volverás a responder tras leer las propuestas de los candidatos."
           />
         </div>
       </main>

@@ -52,12 +52,13 @@ export function ConsentForm({ consentVersion }: { consentVersion: string }) {
         </h2>
         <div className="mt-4 space-y-4">
           <p>
-            <strong>Voto Informado e Instruido · FAIN-UPAO</strong> es una plataforma
+            La plataforma de la <strong>FAIN-UPAO</strong> es una herramienta
             académica del curso para estudiantes de pregrado de la Universidad Privada Antenor
-            Orrego (Trujillo, Perú). Su objetivo es promover la toma de decisiones objetiva y
-            crítica mediante la identificación de la información falsa o engañosa que se divulga
-            en otros canales, a partir del análisis de los planes oficiales del JNE de los
-            candidatos de la Segunda Vuelta Electoral 2026.
+            Orrego (Trujillo, Perú). Se basa en las ofertas electorales oficiales de los
+            candidatos presidenciales de la Segunda Vuelta 2026 y busca promover la toma de
+            decisiones objetiva y crítica mediante la identificación de la información falsa o
+            engañosa que circula en redes, a partir de las propuestas oficiales registradas
+            ante el JNE.
           </p>
 
           <div className="space-y-1">

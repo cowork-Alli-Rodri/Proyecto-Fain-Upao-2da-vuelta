@@ -43,7 +43,7 @@ export default async function DashboardPage({
       <section className="border-b border-[var(--color-border)] py-10 sm:py-14">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="space-y-3">
-            <p className="editorial-kicker">Análisis pedagógico · Voto Informado 2026</p>
+            <p className="editorial-kicker">Análisis pedagógico · Segunda Vuelta 2026</p>
             <h1 className="font-display text-[clamp(2.25rem,5vw,4rem)] font-medium leading-[1.05] tracking-tight text-[var(--color-navy-upao)]">
               Resumen del grupo
             </h1>
@@ -72,7 +72,7 @@ export default async function DashboardPage({
               <SectionHeader
                 kicker="Pivote pre / post"
                 title="Cambio de opinión por dimensión"
-                hint={`Compara la postura antes y después de revisar los planes oficiales. ${Math.round(
+                hint={`Compara el punto de vista antes y después de revisar los planes oficiales. ${Math.round(
                   kpis.opinion_change_rate * 100,
                 )}% del grupo cambió de opinión en al menos una pregunta.`}
               />

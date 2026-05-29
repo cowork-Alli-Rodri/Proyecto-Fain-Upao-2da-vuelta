@@ -178,7 +178,7 @@ export function ProfileForm({ defaults }: { defaults: Defaults }) {
               <SelectContent>
                 {RANGOS_EDAD.map((r) => (
                   <SelectItem key={r} value={r}>
-                    {r} años
+                    {r === "26+" ? "26 años a más" : `${r} años`}
                   </SelectItem>
                 ))}
               </SelectContent>

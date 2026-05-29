@@ -73,7 +73,7 @@ const APELLIDOS = [
   "Lozano",
 ];
 
-const RANGOS = ["17-19", "20-22", "23-25", "26+"] as const;
+const RANGOS = ["18-19", "20-22", "23-25", "26+"] as const;
 const GENEROS = ["femenino", "masculino", "otro", "prefiero_no_decir"] as const;
 
 const MOTIVOS = [

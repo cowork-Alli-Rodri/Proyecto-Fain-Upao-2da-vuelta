@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/auth/role";
 import { getJneFreshness } from "@/lib/jne/cache";
 
-export const metadata: Metadata = { title: "Admin · FAIN-UPAO Voto Informado" };
+export const metadata: Metadata = { title: "Admin · FAIN-UPAO" };
 
 export default async function AdminHomePage() {
   const supabase = await createClient();

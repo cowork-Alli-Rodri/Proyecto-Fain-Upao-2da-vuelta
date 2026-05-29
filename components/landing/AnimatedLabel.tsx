@@ -30,9 +30,13 @@ export function AnimatedLabel({
       initial={reduce ? false : { opacity: 0, y: 16 }}
       animate={reduce ? undefined : { opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: EASE }}
-      className={`relative inline-flex flex-col items-stretch ${className}`}
+      // Vidrio frosted: gradiente blanco translúcido + backdrop-blur. Como esta
+      // etiqueta va sobre navy casi plano (a diferencia del cuadro del contador,
+      // que se apoya sobre la cuña diagonal), el fill debe ser más alto para que
+      // el panel lea como vidrio y no como un rectángulo sólido.
+      className={`relative inline-flex flex-col items-stretch bg-gradient-to-br from-white/[0.14] via-white/[0.07] to-white/[0.03] shadow-[0_18px_50px_-18px_rgba(0,0,0,0.55)] backdrop-blur-md ${className}`}
     >
-      {/* Marco editorial */}
+      {/* Marco editorial — translúcido coherente con el cuadro del contador */}
       <div className="relative border-2 border-white/30 px-7 py-6 sm:px-9 sm:py-8">
         {/* Esquinas cromadas */}
         <Corner position="tl" />

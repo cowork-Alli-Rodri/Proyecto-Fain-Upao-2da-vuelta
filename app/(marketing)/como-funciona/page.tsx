@@ -51,7 +51,7 @@ export default function ComoFuncionaPage() {
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-4">
             <Link href="/" className="flex items-center gap-3">
               <BrandBar className="h-7 sm:h-8" />
-              <BrandMark context="Voto Informado e Instruido" hideContextOnMobile />
+              <BrandMark context="Segunda Vuelta 2026" hideContextOnMobile />
             </Link>
             <Link
               href="/login"

@@ -11,8 +11,8 @@
  *
  * Acepta un `context` opcional (sufijo) y un `prefix` opcional:
  *
- *   <BrandMark context="Voto Informado e Instruido" />
- *     → "FAIN-UPAO · Voto Informado e Instruido"
+ *   <BrandMark context="Segunda Vuelta 2026" />
+ *     → "FAIN-UPAO · Segunda Vuelta 2026"
  *
  *   <BrandMark prefix="Cuestionario" />
  *     → "Cuestionario · FAIN-UPAO"

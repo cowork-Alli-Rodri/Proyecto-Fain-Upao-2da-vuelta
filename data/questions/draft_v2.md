@@ -70,7 +70,7 @@ tipo: likert
 fuente: "INEI 2024 — Tasa de informalidad laboral (71%)"
 ```
 
-**Enunciado**: ¿Qué tan de acuerdo estás con flexibilizar el régimen laboral (eliminar CTS y gratificaciones obligatorias) si eso ayuda a reducir la informalidad del 71%?
+**Enunciado**: ¿Qué tan de acuerdo estás con flexibilizar el régimen laboral (por ejemplo, modificar la CTS y las gratificaciones obligatorias) como medida frente a la informalidad laboral del 71%?
 
 **Escala (1-5)**
 - 1: Muy en desacuerdo

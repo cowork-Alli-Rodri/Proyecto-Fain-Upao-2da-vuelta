@@ -33,7 +33,7 @@ export function AuthShell({
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-4">
           <Link href="/" className="flex items-center gap-3">
             <BrandBar />
-            <BrandMark context="Voto Informado e Instruido" hideContextOnMobile />
+            <BrandMark context="Segunda Vuelta 2026" hideContextOnMobile />
           </Link>
           <div className="flex items-center gap-5">
             <Link

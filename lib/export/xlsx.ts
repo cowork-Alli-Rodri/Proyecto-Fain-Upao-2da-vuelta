@@ -10,7 +10,7 @@ function ensureNonEmpty<T>(rows: T[], fallback: T): T[] {
 
 export async function exportXlsx(ds: ExportDataset): Promise<Buffer> {
   const wb = new ExcelJS.Workbook();
-  wb.creator = "Voto Informado e Instruido · FAIN-UPAO";
+  wb.creator = "FAIN-UPAO · Segunda Vuelta 2026";
   wb.created = new Date(ds.generatedAt);
 
   const profByPseudo = new Map(ds.profiles.map((p) => [p.pseudo, p]));
