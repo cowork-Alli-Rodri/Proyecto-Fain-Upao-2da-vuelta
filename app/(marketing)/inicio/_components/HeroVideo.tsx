@@ -1,68 +1,56 @@
-"use client";
-
 /**
  * Video hero del /inicio: el en vivo de Facebook de la Dra. Tula sobre la
- * Segunda Vuelta 2026. El embed usa el plugin oficial de video de Facebook.
+ * Segunda Vuelta 2026.
  *
- * El plugin renderiza el reproductor al ancho exacto del parámetro `width`. Si
- * se deja fijo (p. ej. 560), en móvil el iframe mide menos y FB dibuja el
- * reproductor fuera del área visible — se ve el recuadro vacío. Por eso medimos
- * el contenedor y pasamos su ancho real, recalculando en cada resize/rotación.
+ * No se embebe con iframe: Facebook niega ese video al reproductor anónimo
+ * (sin sesión del usuario) y devuelve "Video no disponible". En vez de un
+ * recuadro vacío, mostramos un póster de marca con botón de reproducción que
+ * abre el video en Facebook, donde sí se reproduce.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { Play } from "lucide-react";
+
+import { AngelOrnament } from "@/components/landing/AngelOrnament";
 
 const FB_VIDEO_URL =
   "https://www.facebook.com/JNE.Peru/videos/1299888265636776/";
 
-function embedSrc(width: number): string {
-  return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(
-    FB_VIDEO_URL,
-  )}&show_text=false&autoplay=false&width=${width}`;
-}
-
 export function HeroVideo() {
-  const frameWrapRef = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState(560);
-
-  useEffect(() => {
-    const el = frameWrapRef.current;
-    if (!el) return;
-
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const measure = () => {
-      const w = Math.round(el.getBoundingClientRect().width);
-      // Evita recargas por cambios mínimos durante el layout.
-      if (w > 0) setWidth((prev) => (Math.abs(prev - w) > 8 ? w : prev));
-    };
-
-    measure();
-    const onResize = () => {
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(measure, 150);
-    };
-
-    const ro = new ResizeObserver(onResize);
-    ro.observe(el);
-    return () => {
-      if (timer) clearTimeout(timer);
-      ro.disconnect();
-    };
-  }, []);
-
   return (
-    <figure className="relative overflow-hidden rounded-3xl border border-[var(--color-border)] bg-[var(--color-navy-upao)] shadow-[var(--shadow-fluffy)]">
-      <div ref={frameWrapRef} className="relative aspect-video w-full">
-        <iframe
-          src={embedSrc(width)}
-          title="En vivo en Facebook sobre la Segunda Vuelta Presidencial 2026"
-          className="absolute inset-0 h-full w-full"
-          style={{ border: "none", overflow: "hidden" }}
-          scrolling="no"
-          allowFullScreen
-          allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+    <figure className="relative overflow-hidden rounded-3xl border border-[var(--color-border)] shadow-[var(--shadow-fluffy)]">
+      <a
+        href={FB_VIDEO_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Ver en Facebook el video del JNE sobre la Segunda Vuelta Presidencial 2026"
+        className="group relative block aspect-video w-full overflow-hidden bg-[var(--color-navy-upao)]"
+      >
+        <span
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-br from-[var(--color-navy-upao)] via-[var(--color-navy-deep)] to-[var(--color-navy-upao)]"
         />
-      </div>
+        <AngelOrnament className="pointer-events-none absolute -right-8 top-1/2 h-[150%] w-auto -translate-y-1/2 opacity-[0.12] mix-blend-screen" />
+        <span
+          aria-hidden
+          className="absolute left-0 top-0 h-1 w-24 bg-[var(--color-orange-upao)] transition-all duration-500 group-hover:w-40"
+        />
+
+        {/* Botón de reproducción */}
+        <span className="absolute inset-0 flex items-center justify-center">
+          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/40 backdrop-blur-sm transition duration-300 group-hover:scale-105 group-hover:bg-white/20 sm:h-20 sm:w-20">
+            <Play
+              className="h-6 w-6 translate-x-0.5 fill-white text-white sm:h-8 sm:w-8"
+              aria-hidden
+            />
+          </span>
+        </span>
+
+        {/* Pista de que abre en Facebook */}
+        <span className="absolute bottom-4 right-4 inline-flex items-center gap-1.5 font-mono text-[0.6rem] uppercase tracking-[0.18em] text-white/80 transition-colors group-hover:text-white">
+          Ver en Facebook
+          <span aria-hidden>↗</span>
+        </span>
+      </a>
 
       <figcaption className="border-t border-white/10 bg-[var(--color-navy-upao)] p-5 sm:p-6">
         <p className="font-mono text-[0.6rem] uppercase tracking-[0.2em] text-[var(--color-orange-upao-soft)]">
@@ -74,15 +62,6 @@ export function HeroVideo() {
             Al final, tu decisión.
           </span>
         </p>
-        <a
-          href={FB_VIDEO_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-3 inline-flex items-center gap-1.5 font-mono text-[0.65rem] uppercase tracking-[0.18em] text-white/80 underline-offset-4 transition hover:text-white hover:underline"
-        >
-          Ver en Facebook
-          <span aria-hidden>↗</span>
-        </a>
       </figcaption>
     </figure>
   );
